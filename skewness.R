@@ -1,5 +1,8 @@
-skewness <- function(x){
-   # SKEWNESS - Calculate sample skewness:
+skewness <- function(x, na.rm = FALSE, ...){
+   # SKEWNESS - Calculate sample skewness.
+   
+   # Remove NA values:
+   if (na.rm) x <- x[!is.na(x)]
    
    # Number of observations:
    n <- length(x)
