@@ -186,7 +186,6 @@ print.splm <- function(x){
    }
    cat(paste0("            theta : ", bracket(theta(x)), "\n"))
 }
-
 summary.splm <- function(x){
 
    v <- list()
@@ -307,6 +306,7 @@ prior.splm <- function(x, index, full = FALSE, transform = FALSE){
    return(x)
 }
 
+# Stats functions
 predict.splm <- function(x, x0, type = "mean", smooth = TRUE){
    # PREDICT.SPLM - Returns the predicted value associated with an 'splm'.
 
@@ -406,7 +406,6 @@ predict.splm <- function(x, x0, type = "mean", smooth = TRUE){
 
    return(v)
 }
-
 simulate.splm <- function(x, n = 1, x0, discrete = FALSE, drop = TRUE, ...){
    # SIMULATE.SPLM - Generate random samples from an 'splm' object.
 
@@ -434,7 +433,6 @@ simulate.splm <- function(x, n = 1, x0, discrete = FALSE, drop = TRUE, ...){
 
    return(v)
 }
-
 residuals.splm <- function(x){
    # RESIDUALS.SPLM - Calculate reaiduals for an 'splm' object.
 
@@ -445,6 +443,10 @@ residuals.splm <- function(x){
    return(r)
 }
 
+
+# Parameter functions:
+# THETA.SPLM - Extract 'splm' parameter vector.
+# THETA<-.SPLM - Parameter assignement method for an 'splm' object.
 init.splm <- function(x){
    # INIT.SPLM - Initialize parameter vector of an 'splm' object.
 
@@ -507,9 +509,15 @@ init.splm <- function(x){
 
    return(x)
 }
-
-# THETA.SPLM - Extract 'splm' parameter vector.
 theta.splm <- function(x, ...) return(theta(x$theta, ...))
+"theta<-.splm" <- function(x, value, ...) theta(x$theta, ...) <- value
+"fix<-.splm" <- function(x, value, ...){
+   # FIX<- 'fix' 'splm' assignment method.
+
+   fix(x$theta) <- value
+
+   return(x)
+}
 
 loglike.splm <- function(theta, x, discrete = FALSE, ...){
    # LOG.LIKELIHOOD.SPLM - Log-likelihood function for an 'splm' object.
@@ -539,10 +547,34 @@ loglike.splm <- function(theta, x, discrete = FALSE, ...){
 
    return(-sum(v))
 }
+fit.splm <- function(x, trace = FALSE, print = TRUE, niter = 3, ...){
+   # FIT.SPLM - Fit an 'splm' object to data.
 
-# THETA<-.SPLM - Parameter assignement method for an 'splm' object.
-"theta<-.splm" <- function(x, value, ...) theta(x$theta, ...) <- value
+   # Initialize parameter vector:
+   if (any(is.na(theta(x, full = TRUE)))) x <- init(x)
 
+   # Store starting log-likelihood value:
+   ll <- log.likelihood.splm(x, ...)
+
+   if (!trace) trace <- 0
+   for (i in 1:niter){
+      v <- optim(theta(x), log.likelihood.splm, control = list(trace = 0, maxit = 5000), x = x, ...)
+      theta(x) <- v$par
+   }
+
+   if (print){
+      str <- ""
+      if (v$convergence == 0) str <- paste0(str, "Converged") else str <- paste0(str, "Did not converge.")
+      str <- paste0(str, ", ln(theta) = ", as.character(v$value))
+      str <- paste0(str, ", ln(delta) = ", as.character(log(ll - v$value)))
+      str <- paste0(str, "\n")
+      cat(str)
+   }
+
+   return(x)
+}
+
+# Graphics function:
 plot.splm <- function(x, xlim, ylim, xlab = "x", ylab = "y", add = FALSE,
                       pch = 21, bg = "grey", col = "red", lwd = 2, data = TRUE, ...){
    # PLOT.SPLM - Plot an 'splm' object.
@@ -594,3 +626,7 @@ plot.splm <- function(x, xlim, ylim, xlab = "x", ylab = "y", add = FALSE,
       lines(c(xp[i], xp[i]), c(par("usr")[3], predict(x, xp[i])), lwd = lwd, col = col, lty = "dotted")
    }
 }
+
+
+
+
