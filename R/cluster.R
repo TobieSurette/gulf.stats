@@ -1,3 +1,11 @@
+#' Cluster
+#'
+#' @description Cluster using adjacency matrix.
+#'
+#' @param M Adjacency matrix.
+#'
+
+#' @export cluster
 cluster <- function(M){
    # Cluster using 'M' adjacency matrix:
 

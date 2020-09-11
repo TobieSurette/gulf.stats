@@ -12,6 +12,7 @@
 #'    \item{\code{loglike}}{Generic log-likelihood method.}
 #'    \item{\code{fit}}{Generic model fitting method.}
 #'    \item{\code{link}}{Generic link function method.}
+#'    \item{\code{link<-}}{Generic link function assignment method.}
 #'    \item{\code{prior}}{Generic \code{prior} extraction method.}
 #'    \item{\code{prior<-}}{Generic \code{prior} assignment method.}
 #' }
