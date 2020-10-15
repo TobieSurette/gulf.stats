@@ -4,7 +4,12 @@
 #'
 #'
 
-ked.default <- function(x, x0, y, z, z0, nugget, sill, range, positive = TRUE){
+#' @describeIn kriging Generic \code{ked} method.
+#' @export
+ked <- function(x) UseMethod("ked")
+
+#' @export
+ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE){
    # KED - Perform point kriging with external drift.
    #   'x'  : Data coordinates.
    #   'x0' : Prediction coordinates.
@@ -62,9 +67,10 @@ ked.default <- function(x, x0, y, z, z0, nugget, sill, range, positive = TRUE){
    return(list(mean = x0s, var = s, weight = w, K = k, K0 = k0))
 }
 
-ked.scset <- function(x, y, variables, variogram, year, category, weight = FALSE, hard.shelled = FALSE, lag = 3, max.distance = 75, variogram.average = 1,
-                      xlim = c(0, 440), ylim = c(0, 400), grid = c(100, 100), lonref = -66, latref = 45.5, n = 8, nugget, sill, range,
-                      polygon = kriging.polygons()$gulf, bug = FALSE, ...){
+#' @export
+ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALSE, hard.shelled = FALSE, lag = 3, max.distance = 75, variogram.average = 1,
+                       xlim = c(0, 440), ylim = c(0, 400), grid = c(100, 100), lonref = -66, latref = 45.5, n = 8, nugget, sill, range,
+                       polygon = kriging.polygons()$gulf, bug = FALSE, ...){
    # KED.SCSET - Perform kriging with external drift for snow crab data.
 
    # Library for interpolating depth data.
@@ -345,6 +351,7 @@ ked.scset <- function(x, y, variables, variogram, year, category, weight = FALSE
    return(res)
 }
 
+#' @export
 summary.ked <- function(x, polygon){
    # Generate a summary of a 'ked' object.
 
