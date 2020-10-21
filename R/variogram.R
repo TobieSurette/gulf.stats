@@ -90,14 +90,14 @@ variogram.default <- function(x, z, lag, max.distance, mean.lag = TRUE, distance
    # Define object class:
    class(v) <- c("variogram", "list")
 
-   if (fit) v <- fit(v, ...)
+   if (fit) v <- fit.variogram(v, ...)
 
    return(v)
 }
 
 #' @describeIn variogram Calculate empirical variogram for snow crab survey data.
 #' @export
-variogram.scset <- function(x, category, variable, weight = FALSE, lag = 3, max.distance = 75, distance.exponent = 1, ...){
+variogram.scsset <- function(x, category, variable, weight = FALSE, lag = 3, max.distance = 75, distance.exponent = 1, ...){
    # VARIOGRAM.SCSET - Calculate an empirical variogram for an 'scset' object.
 
    if (!missing(category)){
@@ -115,7 +115,7 @@ variogram.scset <- function(x, category, variable, weight = FALSE, lag = 3, max.
    if (!missing(variable)) z <- x[, variable]
 
    # Calculate distance matrix:
-   d <- as.matrix(dist(deg2km(abs(longitude(x)), latitude(x), long.ref = 66, lat.ref = 45.5, method = "ellipsoid")))
+   d <- as.matrix(dist(deg2km(abs(lon(x)), lat(x), long.ref = 66, lat.ref = 45.5, method = "ellipsoid")))
 
    # Fit variogram to data:
    v <- variogram(d, z, lag = lag, max.distance = max.distance, model = "spherical", distance.units = "km", distance.exponent = distance.exponent, ...)
@@ -126,6 +126,7 @@ variogram.scset <- function(x, category, variable, weight = FALSE, lag = 3, max.
 #' @describeIn variogram Evaluate variogram at specified distances.
 #' @export
 variogram.variogram <- function(x, h)  v <- x$vfun(h, nugget = x$nugget, sill = x$sill, range = x$range)
+
 
 #' @describeIn variogram Fit a model to empirical variogram data.
 #' @export fit.variogram
