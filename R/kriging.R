@@ -1,13 +1,38 @@
-#' Kriging
+#' Kriging Spatial Modelling
 #'
-#' @description
+#' @description Spatial interpolation and integration funcions using kriging.
 #'
-#'
+#' @param x  Data coordinates or a data frame containing coordinates.
+#' @param x0 Prediction coordinates.
+#' @param y  Data response values.
+#' @param z  External drift values at data locations.
+#' @param z0 External drift values at prediction locations.
+#' @param nugget Numerical value specifying the nugget value for the variogram model.
+#' @param sill Numerical value specifying the sill or asymptotic value for the variogram model.
+#' @param range Numerical value specifying the range value for the variogram model.
+#' @param positive Logical value specifying whether to constrain kriged interpolation to be positive values.
+#' @param variables Character string specifying the varigram in \code{x} to be analyzed.
+#' @param variogram \code{variogram} object.
+#' @param year Snow crab survey year.
+#' @param category Snow crab survey year.
+#' @param weight = FALSE,
+#' @param hard.shelled = FALSE,
+#' @param lag Lag distance, in kilometers, used for calculating the empirical variogram (i.e. bin size).
+#' @param max.distance Maximum distance used for calculating the empirical variogram.
+#' @param variogram.average Number of years to use in the variogram averaging.
+#' @param polygon Coordinates of
+#' @param grid Two-element vector specifying the dimensions of the interpolation prediction grid.
+#' @param long.ref,lat.ref Lower-left coordinates used, along with \code{grid}, to define the interpolation grid over which kriging will be performed.
+#' @param n Number of nearest neighbours used when kriging
+#' @param nugget,sill,range Variogram model parameter values.
+#' @param xlim,ylim Horizontal and vertical limits in kilometers with respect to the reference coordinates (\code{long.ref} and \code{lat.ref}).
+#' @param polygon Polygon coordinates for within which kriging is to be performed.
+#' @param bug Logical value specifying whether to include a bug in the calculations which was present in past analyses.
 
-#' @describeIn kriging Generic \code{ked} method.
 #' @export
 ked <- function(x) UseMethod("ked")
 
+#' @describeIn ked Perform kriging with external drift.
 #' @export
 ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE){
    # KED - Perform point kriging with external drift.
@@ -67,11 +92,12 @@ ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRU
    return(list(mean = x0s, var = s, weight = w, K = k, K0 = k0))
 }
 
+#' @describeIn ked Perform kriging with external drift for snow crab data.
 #' @export
-ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALSE, hard.shelled = FALSE, lag = 3, max.distance = 75, variogram.average = 1,
-                       xlim = c(0, 440), ylim = c(0, 400), grid = c(100, 100), lonref = -66, latref = 45.5, n = 8, nugget, sill, range,
+ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALSE, hard.shelled = FALSE,
+                       lag = 3, max.distance = 75, variogram.average = 1, xlim = c(0, 440), ylim = c(0, 400),
+                       grid = c(100, 100), long.ref = -66, lat.ref = 45.5, n = 8, nugget, sill, range,
                        polygon = kriging.polygons()$gulf, bug = FALSE, ...){
-   # KED.SCSET - Perform kriging with external drift for snow crab data.
 
    # Library for interpolating depth data.
    library(akima)
@@ -347,159 +373,6 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
                ylim = ylim)
 
    class(res) <- c("ked", "list")
-
-   return(res)
-}
-
-#' @export
-summary.ked <- function(x, polygon){
-   # Generate a summary of a 'ked' object.
-
-   # Parse polygon argument:
-   if (is.numeric(polygon)){
-      if (ncol(polygon) != 2) stop("'polygon' must have two columns.")
-      if (is.null(colnames(polygon))) colnames(polygon) <- c("longitude", "latitude")
-      polygon <- as.data.frame(polygon)
-   }
-   if (is.data.frame(polygon)) polygon <- list(polygon)
-   for (i in 1:length(polygon)){
-      polygon[[i]] <- as.data.frame(polygon[[i]])
-      str <- tolower(colnames(polygon[[i]]))
-      str[grep("lon", str)] <- "longitude"
-      str[grep("lat", str)] <- "latitude"
-      colnames(polygon[[i]]) <- str
-   }
-
-   # Convert coordinates to kilometers:
-   areas <- NULL
-   for (i in 1:length(polygon)){
-      p <- polygon[[i]]
-      p <- cbind(p[setdiff(names(p), c("x", "y"))], deg2km(p$longitude, p$latitude, long.ref = x$reference[1], lat.ref = x$reference[2], method = "ellipsoid"))
-      polygon[[i]] <- p
-      areas[i] <- area.polygon(as.polygon(p$x, p$y))
-   }
-
-   # Convert polygon coordinates to kilometers:
-   res <- expand.grid(x$variables, 1:length(polygon))
-   names(res) <- c("variable", "polygon")
-   res <- as.data.frame(res)
-   res[, 1] <- as.character(res[, 1])
-   res$area <- areas[res$polygon]
-   if (!is.null(names(polygon))) res$polygon <- names(polygon)[res$polygon]
-   res$mean.sample <- NA
-   res$sd.sample <- NA
-   res$n.sample <- NA
-   res$mean <- NA
-   res$sd <- NA
-   res$lowerCI <- NA
-   res$upperCI <- NA
-   res$mean.CV <- NA
-   res$mad.CV <- NA
-   res$sd.CV <- NA
-   for (i in 1:length(polygon)){
-      p <- polygon[[i]]
-      for (j in 1:length(x$variables)){
-         # Calculate global mean:
-         index <- in.polygon(as.polygon(p$longitude, p$latitude), x$map.longitude, x$map.latitude)
-         dim(index) <- x$dim
-         mu <- x$map[,,j]
-         ii <- (res$variable == x$variables[j]) & (res$polygon == names(polygon[i]))
-
-         # Arithmetic statistics:
-         id <- in.polygon(as.polygon(p$longitude, p$latitude), longitude.scset(x$data), latitude.scset(x$data))
-         res$mean.sample[ii] <- mean(x$data[id,x$variables[j]]) *  res$area[ii]
-         res$sd.sample[ii] <- sd(x$data[id,x$variables[j]]) *  res$area[ii]
-         res$n.sample[ii] <- length(x$data[id,x$variables[j]])
-
-         # Cross-validation stats:
-         mad <- function(x) mean(abs(x - mean(x)))
-         res$mean.CV[ii] <- mean(x$data[id,x$variables[j]] - x$cross.validation[id,x$variables[j]])
-         res$mad.CV[ii] <- mad(x$data[id,x$variables[j]] - x$cross.validation[id,x$variables[j]])
-         res$sd.CV[ii] <- sd(x$data[id,x$variables[j]] - x$cross.validation[id,x$variables[j]])
-
-         # Global mean:
-         global <- mean(mu[index], na.rm = TRUE) * res$area[ii]
-         res$mean[ii] <- global
-
-         # Calculate global variance:
-         area <- res$area[ii]
-         ndisc <- 800
-         lx <- diff(range(p$x))
-         ly <- diff(range(p$y))
-         nbdis <- floor(ndisc * lx * ly / area)+1;
-         nx <- floor(sqrt(nbdis))+1;
-
-         gx <- seq(min(p$x), max(p$x), by = lx / nx)
-         gy <- seq(min(p$y), max(p$y), by = ly / nx)
-         xx0 <- expand.grid(gx, gy)
-
-         id <- in.polygon(as.polygon(p$x, p$y), xx0[, 1], xx0[, 2]); # inpolygon est une fonction de matlab 5.
-         xx0 <- xx0[id,]
-
-         # Data points which are close to the polygon boundary:
-         tmp <- prcomp(cbind(p$x, p$y));
-         u <- -tmp$rot
-         l <- diag(tmp$sdev^2)
-         co <- -tmp$x
-         xc <- c(mean(p$x), mean(p$y));
-         mi <- apply(co, 2, min);
-         ma <- apply(co, 2, max);
-         dd <- 0.3*sqrt((ma[1]-mi[1])*(ma[2]-mi[2]));
-         cot <- rbind(mi-dd, c(mi[1]-dd, ma[2]+dd), ma+dd, c(ma[1]+dd, mi[2]-dd));
-         poly2 <- cot %*% u + cbind(rep(xc[1], nrow(cot)), rep(xc[2], nrow(cot)))
-         id <- in.polygon(as.polygon(poly2[, 1],poly2[, 2]), x$data$xkm, x$data$ykm);
-         if (sum(id) == 0) id <- in.polygon(as.polygon(p$x, p$y), x$data$xkm, x$data$ykm);
-         if (sum(id) == 0){
-             xx <- repvec(p$x, ncol = length(x$data$xkm)) - repvec(x$data$xkm, nrow = length(p$x))
-             yy <- repvec(p$y, ncol = length(x$data$ykm)) - repvec(x$data$ykm, nrow = length(p$y))
-             dd <- sqrt(xx^2 + yy^2)
-             id <- apply(dd, 1, function(x) order(x)[1:5])
-             dim(id) <- NULL
-             id <- sort(unique(id))
-         }
-         data <- x$data[id, c("xkm", "ykm", "depth")]
-
-         # Define covariance model:
-         step <- function(x) return((x >= 0) + 1 - 1)
-         spherical <- function(h) return((1-step(h-1)) * (1 - (1.5*h - .5*(h^3))))
-
-         # Distance matrices:
-         hyy <- sqrt((repvec(xx0[,1], nrow = nrow(xx0)) - repvec(xx0[,1], ncol = nrow(xx0)))^2 +
-                    (repvec(xx0[,2], nrow = nrow(xx0)) - repvec(xx0[,2], ncol = nrow(xx0)))^2)
-
-         # Coviarance and cross-covariance matrices:
-         Cyy <- (x$variogram[[j]]$sill - x$variogram[[j]]$nugget) * spherical(hyy / x$variogram[[j]]$range) # Prediction covariance.
-         names(xx0) <- colnames(data[, 1:2])
-         cx = rbind(data[,c("xkm", "ykm")], xx0)
-         k <- matrix(0, nrow = nrow(data), ncol = nrow(cx))
-         ccx <- cx / x$variogram[[j]]$range
-         h <- sqrt((repvec(ccx$xkm, nrow = nrow(ccx)) - repvec(ccx$xkm, ncol = nrow(ccx)))^2 +
-                   (repvec(ccx$ykm, nrow = nrow(ccx)) - repvec(ccx$ykm, ncol = nrow(ccx)))^2)
-         h <- h[1:nrow(data), ]
-         for (kk in 1:nrow(data)) k[kk,kk] <- x$variogram[[j]]$nugget
-         k <- k + (x$variogram[[j]]$sill - x$variogram[[j]]$nugget) *  spherical(h)
-         k0 = k[,(nrow(data)+1):ncol(k)]
-         k = k[,1:nrow(data)]
-         k <- cbind(rbind(k, 1), 1)
-         k[nrow(k), nrow(k)] <- 0
-         k0 <- rbind(k0, 1)
-         k0 <- apply(k0, 1, mean)
-         if (rcond(k) > 1e-15){
-            l = solve(k) %*% k0;
-
-            # Global standard error:
-            sigma <- area * sqrt(mean(Cyy) - sum(l[, 1] * k0))
-            res$sd[ii] <- sigma
-
-            # Lognormal confidence intervals:
-            slog = sqrt(log((sigma^2)/(global^2)+1));
-            mlog = log(global)-(slog^2)/2;
-            cilog = exp(c(mlog - 1.959964 * slog, mlog + 1.959964 *slog));
-            res$lowerCI[ii] <- cilog[1]
-            res$upperCI[ii] <- cilog[2]
-         }
-     }
-   }
 
    return(res)
 }
