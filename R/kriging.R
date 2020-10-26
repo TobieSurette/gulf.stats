@@ -30,11 +30,11 @@
 #' @param bug Logical value specifying whether to include a bug in the calculations which was present in past analyses.
 
 #' @export
-ked <- function(x) UseMethod("ked")
+ked <- function(x, ...) UseMethod("ked")
 
 #' @describeIn ked Perform kriging with external drift.
 #' @export
-ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE){
+ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE, ...){
    # KED - Perform point kriging with external drift.
    #   'x'  : Data coordinates.
    #   'x0' : Prediction coordinates.
@@ -97,8 +97,7 @@ ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRU
 ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALSE, hard.shelled = FALSE,
                        lag = 3, max.distance = 75, variogram.average = 1, xlim = c(0, 440), ylim = c(0, 400),
                        grid = c(100, 100), long.ref = -66, lat.ref = 45.5, n = 8, nugget, sill, range,
-                       polygon = kriging.polygons()$gulf, bug = FALSE, ...){
-
+                       polygon = kriging.polygons()$gulf, ...){
    # Library for interpolating depth data.
    library(akima)
 
@@ -145,20 +144,20 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    }
    if (missing(variables) & !missing(category)) variables <- category
 
-   years <- sort(unique(x$year))
+   years <- sort(unique(gulf.utils::year(x)))
 
    # Estimate variograms:
    if (is.null(parameters) & missing(variogram)){
       cat(paste0("Fitting variograms. \n"))
       if (variogram.average > 1){
-         if (!('year' %in% names(x))) stop("'year' must be contained in the data to perform variogram averaging.")
+         if (!('date' %in% names(x))) stop("'date' must be contained in the data to perform variogram averaging.")
 
          # Define matrix of fitted variograms:
          v <- matrix(list(), nrow = length(years), ncol = length(variables))
 
          for (j in 1:length(variables)){
             for (i in 1:length(years)){
-               v[[i,j]] <- gulf::variogram(x[x$year == years[i], ], variable = variables[j], lag = 3, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
+               v[[i,j]] <- gulf.stats::variogram(x[gulf.utils::year(x) == years[i], ], variable = variables[j], lag = 3, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
             }
          }
 
@@ -184,16 +183,15 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
 
             w[[j]] <- v[[nrow(v),j]]
             w[[j]]$empirical$semi.variance <- res$semi.variance
-            w[[j]] <- fit(w[[j]], distance.exponent = 1)
+            w[[j]] <- fit.variogram(w[[j]], distance.exponent = 1)
          }
          variogram <- w
 
          # Keep only recent data, not the data used for the averaging:
-         x <- x[x$year >= min(x$year) + variogram.average - 1, ]
+         x <- x[gulf.utils::year(x) >= min(gulf.utils::year(x)) + variogram.average - 1, ]
       }else{
          variogram <- list()
-         print(variables)
-         for (j in 1:length(variables)) variogram[[j]] <- variogram.scset(x, variable = variables[j], lag = 3, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
+         for (j in 1:length(variables)) variogram[[j]] <- variogram.scsset(x, variable = variables[j], lag = 3, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
          names(variogram) <- years
       }
    }
@@ -212,12 +210,12 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    }
 
    # Convert coordinates to kilometers:
-   tmp <- deg2km(longitude(x), latitude(x), long.ref = lonref, lat.ref = latref, method = "ellipsoid")
+   tmp <- deg2km(lon(x), lat(x), long.ref = long.ref, lat.ref = lat.ref, method = "ellipsoid")
    names(tmp) <- c("xkm", "ykm")
    x <- cbind(x, tmp)
 
    # Load kriging depth file:
-   data(kriging.depth)
+   depth <- read.gulf.spatial("kriging depth")
 
    # Interpolate depth grid at data locations:
    x$depth <- NA
@@ -232,9 +230,8 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    }
 
    # Define kriging interpolation grid:
-   if (all(grid == c(100, 100)) & (lonref == -66) & (latref == 45.5) & all(xlim == c(0, 440)) & all(ylim == c(0, 400))){
-      data("kriging.grid100x100")
-      x0 <- kriging.grid100x100
+   if (all(grid == c(100, 100)) & (long.ref == -66) & (lat.ref == 45.5) & all(xlim == c(0, 440)) & all(ylim == c(0, 400))){
+      x0 <- read.gulf.spatial("kriging.grid100x100")
    }else{
       xx <- seq(xlim[1], xlim[2], by = diff(xlim)/(grid[1]-1))
       yy <- seq(ylim[1], ylim[2], by = diff(ylim)/(grid[2]-1))
@@ -265,7 +262,6 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
 
    near <- function(x, x0, n){
       # NEAR - Get indices of nearest data n points in each of the four cartesian quadrants.
-
       d = (x[,1]-x0[1])^2 + (x[,2]-x0[2])^2;
 
       ii <- list()
@@ -283,16 +279,6 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       ii <- ii[!is.na(ii)]
 
       return(ii)
-   }
-
-   # Recreate Matlab bug:
-   if (bug){
-      tmp <- parameters
-      for (i in 1:nrow(parameters)){
-         tmp$nugget[i] <- as.matrix(parameters)[1]
-         tmp$sill[i] <- as.matrix(parameters)[2] + as.matrix(parameters)[1]
-      }
-      parameters <- tmp
    }
 
    # Perform kriging:
@@ -368,7 +354,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
                map.longitude = mlon,
                map.latitude = mlat,
                dim = grid,
-               reference = c(lonref, latref),
+               reference = c(long.ref, lat.ref),
                xlim = xlim,
                ylim = ylim)
 

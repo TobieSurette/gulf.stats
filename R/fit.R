@@ -6,6 +6,7 @@
 fit <- function(x, ...) UseMethod("fit")
 
 #' @describeIn variogram Fit a model to empirical variogram data.
+#' @export fit.variogram
 #' @export
 fit.variogram <- function(x, model = "spherical", nugget = TRUE, distance.exponent = 0, inits, ...){
    # Parse input arguments:

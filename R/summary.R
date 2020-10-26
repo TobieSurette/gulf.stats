@@ -54,14 +54,13 @@ summary.ked <- function(x, polygon){
       for (j in 1:length(x$variables)){
          # Calculate global mean:
          index <- in.polygon(as.polygon(p$longitude, p$latitude), x$map.longitude, x$map.latitude)
-         dim(index) <- x$dim
          mu <- x$map[,,j]
          ii <- (res$variable == x$variables[j]) & (res$polygon == names(polygon[i]))
 
          # Arithmetic statistics:
-         id <- in.polygon(as.polygon(p$longitude, p$latitude), longitude.scset(x$data), latitude.scset(x$data))
-         res$mean.sample[ii] <- mean(x$data[id,x$variables[j]]) *  res$area[ii]
-         res$sd.sample[ii] <- sd(x$data[id,x$variables[j]]) *  res$area[ii]
+         id <- in.polygon(as.polygon(p$longitude, p$latitude), lon(scsset(x$data)), lat(scsset(x$data)))
+         res$mean.sample[ii] <- mean(x$data[id,x$variables[j]]) * res$area[ii]
+         res$sd.sample[ii] <- sd(x$data[id,x$variables[j]]) * res$area[ii]
          res$n.sample[ii] <- length(x$data[id,x$variables[j]])
 
          # Cross-validation stats:
@@ -71,8 +70,7 @@ summary.ked <- function(x, polygon){
          res$sd.CV[ii] <- sd(x$data[id,x$variables[j]] - x$cross.validation[id,x$variables[j]])
 
          # Global mean:
-         global <- mean(mu[index], na.rm = TRUE) * res$area[ii]
-         res$mean[ii] <- global
+         res$mean[ii] <- mean(mu[index], na.rm = TRUE) * res$area[ii]
 
          # Calculate global variance:
          area <- res$area[ii]
@@ -86,22 +84,22 @@ summary.ked <- function(x, polygon){
          gy <- seq(min(p$y), max(p$y), by = ly / nx)
          xx0 <- expand.grid(gx, gy)
 
-         id <- in.polygon(as.polygon(p$x, p$y), xx0[, 1], xx0[, 2]); # inpolygon est une fonction de matlab 5.
+         id <- in.polygon(as.polygon(p$x, p$y), xx0[, 1], xx0[, 2])
          xx0 <- xx0[id,]
 
          # Data points which are close to the polygon boundary:
-         tmp <- prcomp(cbind(p$x, p$y));
+         tmp <- prcomp(cbind(p$x, p$y))
          u <- -tmp$rot
          l <- diag(tmp$sdev^2)
          co <- -tmp$x
-         xc <- c(mean(p$x), mean(p$y));
-         mi <- apply(co, 2, min);
-         ma <- apply(co, 2, max);
-         dd <- 0.3*sqrt((ma[1]-mi[1])*(ma[2]-mi[2]));
-         cot <- rbind(mi-dd, c(mi[1]-dd, ma[2]+dd), ma+dd, c(ma[1]+dd, mi[2]-dd));
+         xc <- c(mean(p$x), mean(p$y))
+         mi <- apply(co, 2, min)
+         ma <- apply(co, 2, max)
+         dd <- 0.3*sqrt((ma[1]-mi[1])*(ma[2]-mi[2]))
+         cot <- rbind(mi-dd, c(mi[1]-dd, ma[2]+dd), ma+dd, c(ma[1]+dd, mi[2]-dd))
          poly2 <- cot %*% u + cbind(rep(xc[1], nrow(cot)), rep(xc[2], nrow(cot)))
-         id <- in.polygon(as.polygon(poly2[, 1],poly2[, 2]), x$data$xkm, x$data$ykm);
-         if (sum(id) == 0) id <- in.polygon(as.polygon(p$x, p$y), x$data$xkm, x$data$ykm);
+         id <- in.polygon(as.polygon(poly2[, 1],poly2[, 2]), x$data$xkm, x$data$ykm)
+         if (sum(id) == 0) id <- in.polygon(as.polygon(p$x, p$y), x$data$xkm, x$data$ykm)
          if (sum(id) == 0){
             xx <- repvec(p$x, ncol = length(x$data$xkm)) - repvec(x$data$xkm, nrow = length(p$x))
             yy <- repvec(p$y, ncol = length(x$data$ykm)) - repvec(x$data$ykm, nrow = length(p$y))
@@ -145,8 +143,8 @@ summary.ked <- function(x, polygon){
             res$sd[ii] <- sigma
 
             # Lognormal confidence intervals:
-            slog = sqrt(log((sigma^2)/(global^2)+1));
-            mlog = log(global)-(slog^2)/2;
+            slog = sqrt(log((sigma^2)/(res$mean[ii]^2)+1));
+            mlog = log(res$mean[ii])-(slog^2)/2;
             cilog = exp(c(mlog - 1.959964 * slog, mlog + 1.959964 *slog));
             res$lowerCI[ii] <- cilog[1]
             res$upperCI[ii] <- cilog[2]

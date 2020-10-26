@@ -6,9 +6,9 @@
 \alias{ked.scsset}
 \title{Kriging Spatial Modelling}
 \usage{
-ked(x)
+ked(x, ...)
 
-\method{ked}{default}(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE)
+\method{ked}{default}(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE, ...)
 
 \method{ked}{scsset}(
   x,
@@ -32,7 +32,6 @@ ked(x)
   sill,
   range,
   polygon = kriging.polygons()$gulf,
-  bug = FALSE,
   ...
 )
 }
@@ -83,9 +82,9 @@ ked(x)
 
 \item{polygon}{Polygon coordinates for within which kriging is to be performed.}
 
-\item{bug}{Logical value specifying whether to include a bug in the calculations which was present in past analyses.}
-
 \item{nugget, sill, range}{Variogram model parameter values.}
+
+\item{bug}{Logical value specifying whether to include a bug in the calculations which was present in past analyses.}
 }
 \description{
 Spatial interpolation and integration funcions using kriging.
