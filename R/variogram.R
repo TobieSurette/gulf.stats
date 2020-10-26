@@ -9,6 +9,8 @@
 #' @param nugget Logical value specifying whether the variogram model includes a nugget (i.e. zero-lag) variance component.
 #' @param distance.exponent Positive numeric value specifying the exponent of the distance metric.
 #' @param inits Initial parameter values.
+#'
+#'
 
 #' @export
 variogram <- function(x, ...) UseMethod("variogram")
@@ -96,12 +98,11 @@ variogram.default <- function(x, z, lag, max.distance, mean.lag = TRUE, distance
 #' @describeIn variogram Calculate empirical variogram for snow crab survey data.
 #' @export
 variogram.scsset <- function(x, category, variable, weight = FALSE, lag = 3, max.distance = 75, distance.exponent = 1, ...){
-   # VARIOGRAM.SCSET - Calculate an empirical variogram for an 'scset' object.
-
    if (!missing(category)){
       # Read biological data:
-      b <- read.scbio(year = unique(x$year))
-      vars <- c("year", "tow.id")
+      b <- read.scsbio(year = unique(gulf.utils::year(x)))
+      b$tow.id <- tow.id(b)
+      vars <- c("date", "tow.id")
       res <- aggregate(is.category(b, category), by = x[c("year", "tow.id")], sum, na.rm = TRUE)
       index <- match(res[vars], x[vars])
       x$number.caught <- NA
@@ -110,6 +111,7 @@ variogram.scsset <- function(x, category, variable, weight = FALSE, lag = 3, max
       z <- x$density
    }
 
+   # Extract analytical variable from 'x':
    if (!missing(variable)) z <- x[, variable]
 
    # Calculate distance matrix:

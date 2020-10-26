@@ -131,7 +131,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       years <- (year - variogram.average + 1):year
 
       # Read survey data:
-      x <- read.scset(year = years, valid = 1)
+      x <- read.scsset(year = years, valid = 1)
       x <- x[(x$month >= 7), ]
       x <- x[substr(x$tow.id,2,2) != "C", ]
       if (missing(category)) stop("'category' must be specified.")
