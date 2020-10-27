@@ -61,7 +61,7 @@ summary.ked <- function(x, polygon){
          id <- in.polygon(as.polygon(p$longitude, p$latitude), lon(scsset(x$data)), lat(scsset(x$data)))
          res$mean.sample[ii] <- mean(x$data[id,x$variables[j]]) * res$area[ii]
          res$sd.sample[ii] <- sd(x$data[id,x$variables[j]]) * res$area[ii]
-         res$n.sample[ii] <- length(x$data[id,x$variables[j]])
+         res$n[ii] <- length(x$data[id,x$variables[j]])
 
          # Cross-validation stats:
          mad <- function(x) mean(abs(x - mean(x)))
