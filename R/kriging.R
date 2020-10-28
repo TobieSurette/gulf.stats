@@ -14,9 +14,9 @@
 #' @param variables Character string specifying the varigram in \code{x} to be analyzed.
 #' @param variogram \code{variogram} object.
 #' @param year Snow crab survey year.
-#' @param category Snow crab survey year.
-#' @param weight = FALSE,
-#' @param hard.shelled = FALSE,
+#' @param category Snow crab category identifier (see \code{\link[gulf.data]{category}}).
+#' @param weight Logical value specifying whether to convert observed catch abundances to weights.
+#' @param as.hard.shelled Logical value specifying whether to treat crab as hard-shelled when calculating their weight.
 #' @param lag Lag distance, in kilometers, used for calculating the empirical variogram (i.e. bin size).
 #' @param max.distance Maximum distance used for calculating the empirical variogram.
 #' @param variogram.average Number of years to use in the variogram averaging.
@@ -28,19 +28,29 @@
 #' @param xlim,ylim Horizontal and vertical limits in kilometers with respect to the reference coordinates (\code{long.ref} and \code{lat.ref}).
 #' @param polygon Polygon coordinates for within which kriging is to be performed.
 #' @param bug Logical value specifying whether to include a bug in the calculations which was present in past analyses.
+#'
+#' @examples
+#' # Worked out kriging example:
+#' s <- read.scsset(2020, valid = 1, survey = "regular") # Read tow data.
+#' b <- read.scsbio(s) # Read biological data.
+#' import(s, fill = 0) <- catch(b, category = "COM", weight = TRUE, as.hard.shell = TRUE, units = "t") # Calculate and import commercial catch weights.
+#' s["COM"] <- 1000000 * s["COM"] / repvec(s$swept.area, ncol = length("COM")) # Standardize by swept area.
+#' k <- ked(s, variable = "COM") # Perform kriging.
+#' p <- read.gulf.spatial("kriging polygons rda") # Load kriging polygons.
+#' summary(k, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")]) # Calculate biomass and statistics.
+#'
+#' # More succinct version:
+#' v <- ked(year = 2020, category = "COM", weight = TRUE, as.hard.shelled = TRUE, units = "t")
+#' summary(k, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")])
 
 #' @export
 ked <- function(x, ...) UseMethod("ked")
 
 #' @describeIn ked Perform kriging with external drift.
 #' @export
-ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE, ...){
-   # KED - Perform point kriging with external drift.
-   #   'x'  : Data coordinates.
-   #   'x0' : Prediction coordinates.
-   #   'y'  : Data response values.
-   #   'z'  : External drift values at data locations.
-   #   'z0' : External drift values at prediction locations.
+ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE, year, survey = "scs", ...){
+   # Load data:
+   if (!missing(year)) if (gulf.metadata::project(survey) == "scs") return(ked(read.scsset(year = year, valid = 1, survey = "regular"), ...))
 
    # Number of data points:
    n <- nrow(x)
@@ -94,12 +104,10 @@ ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRU
 
 #' @describeIn ked Perform kriging with external drift for snow crab data.
 #' @export
-ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALSE, hard.shelled = FALSE,
+ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALSE, as.hard.shelled = FALSE,
                        lag = 3, max.distance = 75, variogram.average = 1, xlim = c(0, 440), ylim = c(0, 400),
                        grid = c(100, 100), long.ref = -66, lat.ref = 45.5, n = 8, nugget, sill, range,
-                       polygon = kriging.polygons()$gulf, ...){
-   # Library for interpolating depth data.
-   library(akima)
+                       polygon = gulf.spatial::read.gulf.spatial("kriging polygons revised")[["gulf"]], ...){
 
    # Append kriging response variables:
    if (!missing(y)){
@@ -118,7 +126,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       parameters <- data.frame(nugget = nugget, sill = sill, range = range)
    }
 
-   # Load appropriate data and variable and calculate variogram(s):
+   # Load appropriate survey set data and variable:
    if (!missing(year)){
       cat(paste0("Loading data for ", year, ".\n"))
 
@@ -126,29 +134,27 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       if (missing(category) & !missing(variables)) category <- variables
       if (!is.null(parameters) | !missing(variogram)) variogram.average <- 1
 
-      # Define number of years of data to be loaded.
-      years <- (year - variogram.average + 1):year
-
       # Read survey data:
-      x <- read.scsset(year = years, valid = 1)
-      x <- x[(x$month >= 7), ]
-      x <- x[substr(x$tow.id,2,2) != "C", ]
-      if (missing(category)) stop("'category' must be specified.")
+      x <- read.scsset(year = (year - variogram.average + 1):year, valid = 1, survey = "regular")
+   }
 
-      # Calculate frequency observations:
-      x <- summary(x, category = category, weight = weight, hard.shelled = hard.shelled, ...)
-
-      # Scale to square kilometers:
-      x[category] <- 1000000 * x[category] / repvec(x$swept.area, ncol = length(category))
+   # Import catch data:
+   if (!missing(category)){
+      if (!all(category %in% names(x))){
+         b <- read.scsbio(x) # Read biological data.
+         import(x, fill = 0) <- catch(b, category = category, weight = weight, as.hard.shelled = as.hard.shelled, ...) # Import catch data.
+         x[category] <- 1000000 * x[category] / repvec(x$swept.area, ncol = length(category)) # Scale to square kilometers.
+      }
       variables <- category
    }
-   if (missing(variables) & !missing(category)) variables <- category
 
+
+
+   # Define survey years:
    years <- sort(unique(gulf.utils::year(x)))
 
    # Estimate variograms:
    if (is.null(parameters) & missing(variogram)){
-      cat(paste0("Fitting variograms. \n"))
       if (variogram.average > 1){
          if (!('date' %in% names(x))) stop("'date' must be contained in the data to perform variogram averaging.")
 
@@ -157,7 +163,8 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
 
          for (j in 1:length(variables)){
             for (i in 1:length(years)){
-               v[[i,j]] <- gulf.stats::variogram(x[gulf.utils::year(x) == years[i], ], variable = variables[j], lag = 3, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
+               cat(paste0("Fitting variogram for year = ", years[i], " variable '", variables[j], "' \n"))
+               v[[i,j]] <- gulf.stats::variogram(x[gulf.utils::year(x) == years[i], ], variable = variables[j], lag = lag, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
             }
          }
 
@@ -191,7 +198,10 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
          x <- x[gulf.utils::year(x) >= min(gulf.utils::year(x)) + variogram.average - 1, ]
       }else{
          variogram <- list()
-         for (j in 1:length(variables)) variogram[[j]] <- variogram.scsset(x, variable = variables[j], lag = 3, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
+         for (j in 1:length(variables)){
+            cat(paste0("Fitting variogram for variable '", variables[j], "' \n"))
+            variogram[[j]] <- variogram(x, variable = variables[j], lag = lag, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
+         }
          names(variogram) <- years
       }
    }
@@ -210,12 +220,12 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    }
 
    # Convert coordinates to kilometers:
-   tmp <- deg2km(lon(x), lat(x), long.ref = long.ref, lat.ref = lat.ref, method = "ellipsoid")
+   tmp <- gulf.spatial::deg2km(gulf.spatial::lon(x), gulf.spatial::lat(x), long.ref = long.ref, lat.ref = lat.ref, method = "ellipsoid")
    names(tmp) <- c("xkm", "ykm")
    x <- cbind(x, tmp)
 
    # Load kriging depth file:
-   depth <- read.gulf.spatial("kriging depth")
+   depth <- gulf.spatial::read.gulf.spatial("kriging depth")
 
    # Interpolate depth grid at data locations:
    x$depth <- NA
@@ -231,7 +241,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
 
    # Define kriging interpolation grid:
    if (all(grid == c(100, 100)) & (long.ref == -66) & (lat.ref == 45.5) & all(xlim == c(0, 440)) & all(ylim == c(0, 400))){
-      x0 <- read.gulf.spatial("kriging.grid100x100")
+      x0 <- gulf.spatial::read.gulf.spatial("kriging.grid100x100")
    }else{
       xx <- seq(xlim[1], xlim[2], by = diff(xlim)/(grid[1]-1))
       yy <- seq(ylim[1], ylim[2], by = diff(ylim)/(grid[2]-1))
@@ -252,12 +262,12 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
          zz <- depth$depth[index]
          flag <- all(x0$xkm[i] > xx) | all(x0$xkm[i] < xx) | all(x0$ykm[i] > yy) | all(x0$ykm[i] < yy)
          if (!flag){
-            if (all(zz == 0)) x0$depth[i] <- 0 else x0$depth[i] <- interp(x = xx, y = yy, z = zz, x0$xkm[i], x0$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z[1,1]
+            if (all(zz == 0)) x0$depth[i] <- 0 else x0$depth[i] <- akima::interp(x = xx, y = yy, z = zz, x0$xkm[i], x0$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z[1,1]
          }
       }
 
       # Append longitude and latitude coordinates:
-      x0 <- cbind(x0, as.data.frame(km2deg(x0$xkm, x0$ykm, long.ref = -66, lat.ref = 45.5, method = "ellipsoid")))
+      x0 <- cbind(x0, as.data.frame(gulf.spatial::km2deg(x0$xkm, x0$ykm, long.ref = -66, lat.ref = 45.5, method = "ellipsoid")))
    }
 
    near <- function(x, x0, n){
@@ -282,29 +292,31 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    }
 
    # Perform kriging:
-   cat("Performing kriging:\n")
    mu <- array(NA, dim = c(grid, length(variables)))
    var <- array(NA, dim = c(grid, length(variables)))
    for (i in 1:length(variables)){
       mu.tmp <- matrix(NA, nrow = nrow(x0))
       var.tmp <- mu.tmp
-      cat(paste0("   Kriging '", variables[i], "' variable:\n"))
-      for (j in 1:nrow(x0)){
-         if ((j %% 500) == 0) cat(paste0("      Kriging ", j, " of ", nrow(x0), " points.\n"))
+      cat(paste0("\nKriging variable '", variables[i], "'\n"))
+      index <- gulf.graphics::in.polygon(gulf.graphics::as.polygon(polygon$longitude, polygon$latitude),
+                                         x0$longitude, x0$latitude)
+      index <- which(index)
+      for (j in 1:length(index)){
+         if ((j %% 500) == 0) cat(paste0("      Kriging ", j, " of ", length(index), " points.\n"))
 
-         id <- near(x[, c("xkm", "ykm")], unlist(x0[j, c("xkm", "ykm")]), n)
+         id <- near(x[, c("xkm", "ykm")], unlist(x0[index[j], c("xkm", "ykm")]), n)
 
          res <- ked.default(x = x[id, c("xkm", "ykm")],
-                            x0 = x0[j, c("xkm", "ykm")],
+                            x0 = x0[index[j], c("xkm", "ykm")],
                             y = x[id, variables[i]],
                             z = x[id, "depth"],
-                            z0 = x0[j, "depth"],
+                            z0 = x0[index[j], "depth"],
                             nugget = parameters$nugget[i],
                             sill   = parameters$sill[i] - parameters$nugget[i],
                             range  = parameters$range[i])
 
-         mu.tmp[j] <- res$mean
-         var.tmp[j] <- res$var
+         mu.tmp[index[j]] <- res$mean
+         var.tmp[index[j]] <- res$var
       }
       cat("\n")
 
@@ -321,9 +333,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       for (j in 1:nrow(x)){
          # Remove observation:
          xx <- x[-j, ]
-
          id <- near(xx[, c("xkm", "ykm")], unlist(x[j, c("xkm", "ykm")]), n)
-
          res <- ked.default(x = xx[id, c("xkm", "ykm")],
                             x0 = x[j, c("xkm", "ykm")],
                             y = xx[id, variables[i]],
@@ -335,7 +345,6 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
 
          cv[j,i] <- res$mean
       }
-      cat("\n")
    }
 
    # Get kriging grid coordinates:

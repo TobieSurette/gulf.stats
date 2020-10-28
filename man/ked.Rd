@@ -8,7 +8,20 @@
 \usage{
 ked(x, ...)
 
-\method{ked}{default}(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRUE, ...)
+\method{ked}{default}(
+  x,
+  x0,
+  y,
+  z,
+  z0,
+  nugget = 0,
+  sill,
+  range,
+  positive = TRUE,
+  year,
+  survey = "scs",
+  ...
+)
 
 \method{ked}{scsset}(
   x,
@@ -18,7 +31,7 @@ ked(x, ...)
   year,
   category,
   weight = FALSE,
-  hard.shelled = FALSE,
+  as.hard.shelled = FALSE,
   lag = 3,
   max.distance = 75,
   variogram.average = 1,
@@ -31,7 +44,7 @@ ked(x, ...)
   nugget,
   sill,
   range,
-  polygon = kriging.polygons()$gulf,
+  polygon = gulf.spatial::read.gulf.spatial("kriging polygons revised")[["gulf"]],
   ...
 )
 }
@@ -54,17 +67,17 @@ ked(x, ...)
 
 \item{positive}{Logical value specifying whether to constrain kriged interpolation to be positive values.}
 
+\item{year}{Snow crab survey year.}
+
 \item{variables}{Character string specifying the varigram in \code{x} to be analyzed.}
 
 \item{variogram}{\code{variogram} object.}
 
-\item{year}{Snow crab survey year.}
+\item{category}{Snow crab category identifier (see \code{\link[gulf.data]{category}}).}
 
-\item{category}{Snow crab survey year.}
+\item{weight}{Logical value specifying whether to convert observed catch abundances to weights.}
 
-\item{weight}{= FALSE,}
-
-\item{hard.shelled}{= FALSE,}
+\item{as.hard.shelled}{Logical value specifying whether to treat crab as hard-shelled when calculating their weight.}
 
 \item{lag}{Lag distance, in kilometers, used for calculating the empirical variogram (i.e. bin size).}
 
@@ -96,3 +109,17 @@ Spatial interpolation and integration funcions using kriging.
 \item \code{scsset}: Perform kriging with external drift for snow crab data.
 }}
 
+\examples{
+# Worked out kriging example:
+s <- read.scsset(2020, valid = 1, survey = "regular") # Read tow data.
+b <- read.scsbio(s) # Read biological data.
+import(s, fill = 0) <- catch(b, category = "COM", weight = TRUE, as.hard.shell = TRUE, units = "t") # Calculate and import commercial catch weights.
+s["COM"] <- 1000000 * s["COM"] / repvec(s$swept.area, ncol = length("COM")) # Standardize by swept area.
+k <- ked(s, variable = "COM") # Perform kriging.
+p <- read.gulf.spatial("kriging polygons rda") # Load kriging polygons.
+summary(k, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")]) # Calculate biomass and statistics.
+
+# More succinct version:
+v <- ked(year = 2020, category = "COM", weight = TRUE, as.hard.shelled = TRUE, units = "t")
+summary(k, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")])
+}

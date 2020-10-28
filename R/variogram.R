@@ -115,7 +115,7 @@ variogram.scsset <- function(x, category, variable, weight = FALSE, lag = 3, max
    if (!missing(variable)) z <- x[, variable]
 
    # Calculate distance matrix:
-   d <- as.matrix(dist(deg2km(abs(lon(x)), lat(x), long.ref = 66, lat.ref = 45.5, method = "ellipsoid")))
+   d <- as.matrix(dist(gulf.spatial::deg2km(abs(gulf.spatial::lon(x)), gulf.spatial::lat(x), long.ref = 66, lat.ref = 45.5, method = "ellipsoid")))
 
    # Fit variogram to data:
    v <- variogram(d, z, lag = lag, max.distance = max.distance, model = "spherical", distance.units = "km", distance.exponent = distance.exponent, ...)

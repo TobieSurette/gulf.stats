@@ -1,6 +1,7 @@
 Package: gulf.stats
 Type: Package
 Title: Southern Gulf of St Lawrence Metadata
+Depends: gulf.data,gulf.spatial,akima
 Version: 0.1.0
 Authors@R: as.person(c("Tobie Surette <Tobie.Surette@dfo-mpo.gc.ca> [aut, cre]"))
 Description: Southern Gulf of Saint Lawrence statistical methods package.

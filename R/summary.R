@@ -1,13 +1,11 @@
 #' Summary for Statistical Models
 #'
-#' @name summary
-#'
 #' @description Generate a summary for a statistical model.
-
+#'
+#' @describeIn summary Generate a summary of a 'ked' object. The output includes sample and kriged estimates,
+#'             along with error estimates.
 #' @export
-summary.ked <- function(x, polygon){
-   # Generate a summary of a 'ked' object.
-
+summary.ked <- function(x, polygon, ...){
    # Parse polygon argument:
    if (is.numeric(polygon)){
       if (ncol(polygon) != 2) stop("'polygon' must have two columns.")
@@ -29,7 +27,7 @@ summary.ked <- function(x, polygon){
       p <- polygon[[i]]
       p <- cbind(p[setdiff(names(p), c("x", "y"))], deg2km(p$longitude, p$latitude, long.ref = x$reference[1], lat.ref = x$reference[2], method = "ellipsoid"))
       polygon[[i]] <- p
-      areas[i] <- area.polygon(as.polygon(p$x, p$y))
+      areas[i] <- gulf.graphics::area(gulf.graphics::as.polygon(p$x, p$y))
    }
 
    # Convert polygon coordinates to kilometers:
@@ -41,7 +39,7 @@ summary.ked <- function(x, polygon){
    if (!is.null(names(polygon))) res$polygon <- names(polygon)[res$polygon]
    res$mean.sample <- NA
    res$sd.sample <- NA
-   res$n.sample <- NA
+   res$n <- NA
    res$mean <- NA
    res$sd <- NA
    res$lowerCI <- NA
