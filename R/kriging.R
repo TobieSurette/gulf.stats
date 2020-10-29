@@ -163,7 +163,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
 
          for (j in 1:length(variables)){
             for (i in 1:length(years)){
-               cat(paste0("Fitting variogram for year = ", years[i], " variable '", variables[j], "' \n"))
+               cat(paste0("Fitting variogram for year = ", years[i], ", variable '", variables[j], "' \n"))
                v[[i,j]] <- gulf.stats::variogram(x[gulf.utils::year(x) == years[i], ], variable = variables[j], lag = lag, max.distance = max.distance, fit = TRUE, inits = list(range = 20))
             }
          }
