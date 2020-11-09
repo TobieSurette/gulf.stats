@@ -21,9 +21,6 @@
 #' theta <- c(alpha = 0, slope = c(0, 1, -1, 0), transition = c(0, 1, 2), window = -3)
 #' x <- seq(-1, 3, length = 1000)
 #' plot(x, splm(theta = theta)(x), type = "l", lwd = 2)
-#' plot(x, splm(theta = theta, weights = TRUE)(x), type = "l", lwd = 2)
-#'
-
 
 #' @export
 splm <- function(x, ...) UseMethod("splm")
@@ -55,15 +52,8 @@ splm.default <- function(x, theta, weights = FALSE, ...){
          if (k == 0) return(rep(1,length(x)))
          eta <- matrix(NA, nrow = length(x), ncol = k)
          for (i in 1:k) eta[,i] <- (x - transition[[i]]) / window[[i]]
-         if (k == 1){
-            p <- 1 / (1 + exp(-eta))
-         }else{
-            p <- exp(eta) / (1 + gulf.utils::repvec(apply(exp(eta), 1, sum) , ncol = k))
-            p <- cbind(1 - apply(p, 1, sum), p)
-            return(p)
-         }
-
-         return(p)
+         if (k == 1) return(1 / (1 + exp(-eta)))
+         return(NULL)
       }
    }
 
