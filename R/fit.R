@@ -1,11 +1,25 @@
-#' Fit Model to Data
+#' Fit Statistical Models
 #'
 #' @description Functions to fit statistical models to data.
+#'
+#' @param x Data object or numeric vector representing a morphometric predictor variable..
+#' @param y Numeric vector representing a morphometric response variable.
+#' @param z Binary classification vector classifying morphometric data into discrete maturity groups.
+#' @param sex Biological sex which specifies the type of analysis or initial values to be applied.
+#' @param theta Parameter vector.
+#' @param model Character string specifying the model type.
+#' @param nugget Logical value specifying whether a variogram model contains a nugget semi-variance parameter.
+#' @param distance.exponent Numeric value specifying the exponent to be applied in the distance metric.
+#'
 
 #' export
 fit <- function(x, ...) UseMethod("fit")
 
-#' @describeIn variogram Fit a model to empirical variogram data.
+# @describeIn fit Generic morphometric model fit method.
+#' @export fit.morphometry
+fit.morphometry <- function(x, ...) UseMethod("fit.morphometry")
+
+#' @describeIn fit Fit a model to empirical variogram data.
 #' @export fit.variogram
 #' @export
 fit.variogram <- function(x, model = "spherical", nugget = TRUE, distance.exponent = 0, inits, ...){
@@ -110,4 +124,77 @@ fit.variogram <- function(x, model = "spherical", nugget = TRUE, distance.expone
    x$vfun   <- vfun
 
    return(x)
+}
+
+#' @describeIn fit Fit a morphometric model to snow crab biological data.
+#' @export fit.morphometry.scsbio
+#' @rawNamespace S3method(fit.morphometry,scsbio)
+fit.morphometry.scsbio <- function(x, y, z, sex, theta, discrete = FALSE){
+
+   if (!missing(sex) & missing(theta)){
+      if (sex == 1){
+         # Male morphometry initial values:
+         theta <- c(beta_immature = c(-2.03, 1.116, -0.06026, 0.0114), # Log-scale immature morphometric coefficients.
+                    beta_mature = c(-2.858, 1.312),  # Log-scale mature morphometric coefficients.
+                    log_sigma = -3.3,                # Log-scale standard error.
+                    log_sigma_kurtotic = 0,          # Log-scale extra standard error for kurtotic observations.
+                    logit_p_kurtotic = -2,           # Logit-scale proportion of kurtotic observations.
+                    p_alpha = -11,                   # Logit-scale splm intercept parameter for mature proportions.
+                    p_beta = c(0.25, 0.015, 0.25),   # Logit-scale splm slope parameters for mature proportions.
+                    p_transition = c(45, 95),        # Logit-scale transition parameters for mature proportions.
+                    p_window = 2.0)                  # Logit-scale splm window width parameter(s) for mature proportions.
+      }
+      if (sex == 2){
+         # Male morphometry initial values:
+         theta <- c(beta_immature = c(-2.72, 1.228), # Log-scale immature morphometric coefficients.
+                    beta_mature = c(-2.80, 1.30),    # Log-scale mature morphometric coefficients.
+                    log_sigma = -3,                  # Log-scale standard error.
+                    log_sigma_kurtotic = 2,          # Log-scale extra standard error for kurtotic observations.
+                    logit_p_kurtotic = -5.7,         # Logit-scale proportion of kurtotic observations.
+                    p_alpha = -10.4,                 # Logit-scale splm intercept parameter for mature proportions.
+                    p_beta = c(0.16, 0.015, 0.29),   # Logit-scale splm slope parameters for mature proportions.
+                    p_transition = c(58.8, 101.1),   # Logit-scale transition parameters for mature proportions.
+                    p_window = 1.45)                 # Logit-scale splm window width parameter(s) for mature proportions.
+      }
+   }
+
+   # Negative log-likelihood function:
+   loglike <- function(theta, x, y, z, fixed, discrete = FALSE){
+      if (!missing(fixed)) theta <- c(theta, fixed)
+      return(-sum(morphometry.scsbio(x, y, z = z, theta = theta, discrete = discrete)$loglike))
+   }
+
+   # Fit proportions
+   cat("Fitting mature proportion parameters.\n")
+   fixed <- theta[-grep("^p_", names(theta))]
+   theta <- theta[setdiff(names(theta), names(fixed))]
+   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 1000))$par
+   theta <- c(theta, fixed)
+
+   # Fit kurtotic parameters:
+   cat("Fitting kurtosis parameters.\n")
+   fixed <- theta[-grep("kurtotic", names(theta))]
+   theta <- theta[setdiff(names(theta), names(fixed))]
+   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 500))$par
+   theta <- c(theta, fixed)
+
+   # Fit immature regression:
+   cat("Fitting immature regression coefficients.\n")
+   fixed <- theta[-grep("immature", names(theta))]
+   theta <- theta[setdiff(names(theta), names(fixed))]
+   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 500))$par
+   theta <- c(theta, fixed)
+
+   # Fit non-regression coefficients:
+   cat("Fitting non-regression coefficients.\n")
+   fixed <- theta[grep("mature", names(theta))]
+   theta <- theta[setdiff(names(theta), names(fixed))]
+   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 2000))$par
+   theta <- c(theta, fixed)
+
+   # Fit immature regression:
+   cat("Fitting complete model.\n")
+   theta <- optim(theta, loglike, x = x, y = y, z = z, discrete = discrete, control = list(trace = 3, maxit = 5000))$par
+
+   return(theta)
 }

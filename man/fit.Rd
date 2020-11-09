@@ -2,11 +2,42 @@
 % Please edit documentation in R/fit.R
 \name{fit}
 \alias{fit}
-\title{Fit Model to Data}
+\alias{fit.variogram}
+\alias{fit.morphometry.scsbio}
+\title{Fit Statistical Models}
 \usage{
 fit(x, ...)
+
+\method{fit}{variogram}(x, model = "spherical", nugget = TRUE, distance.exponent = 0, inits, ...)
+
+\method{fit}{morphometry.scsbio}(x, y, z, sex, theta, discrete = FALSE)
+}
+\arguments{
+\item{x}{Data object or numeric vector representing a morphometric predictor variable..}
+
+\item{model}{Character string specifying the model type.}
+
+\item{nugget}{Logical value specifying whether a variogram model contains a nugget semi-variance parameter.}
+
+\item{distance.exponent}{Numeric value specifying the exponent to be applied in the distance metric.
+
+export}
+
+\item{y}{Numeric vector representing a morphometric response variable.}
+
+\item{z}{Binary classification vector classifying morphometric data into discrete maturity groups.}
+
+\item{sex}{Biological sex which specifies the type of analysis or initial values to be applied.}
+
+\item{theta}{Parameter vector.}
 }
 \description{
 Functions to fit statistical models to data.
-export
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{variogram}: Fit a model to empirical variogram data.
+
+\item \code{morphometry.scsbio}: Fit a morphometric model to snow crab biological data.
+}}
+

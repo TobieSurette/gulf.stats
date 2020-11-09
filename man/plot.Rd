@@ -2,6 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot.variogram}
 \alias{plot.variogram}
+\alias{plot.morphometry.scsbio}
 \title{Plot Statistical Models}
 \usage{
 \method{plot}{variogram}(
@@ -20,6 +21,8 @@
   range = TRUE,
   ...
 )
+
+\method{plot}{morphometry.scsbio}(x, y, theta, xlim = c(10, 140), log = TRUE, title, discrete = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{variogram} object.}
@@ -37,7 +40,16 @@
 \item{xlim, ylim}{Two-element numerical vectors specifying plot axes limits.}
 
 \item{nugget, sill, range}{Logical value specifying whether to display reference lines for variogram parameters.}
+
+\item{discrete}{Logical value specifying whether morphometric data are rounded.}
 }
 \description{
 Functions to graphically display statistical models.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{variogram}: Variogram plot method.
+
+\item \code{morphometry.scsbio}: Morphometric plot for snow crab biological data.
+}}
+
