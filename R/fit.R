@@ -126,7 +126,7 @@ fit.variogram <- function(x, model = "spherical", nugget = TRUE, distance.expone
    return(x)
 }
 
-#' @describeIn fit Fit a morphometric model to snow crab biological data.
+#' @describeIn fit Fit a morphometric model to snow crab morphometric data.
 #' @export fit.morphometry.scsbio
 #' @rawNamespace S3method(fit.morphometry,scsbio)
 fit.morphometry.scsbio <- function(x, y, z, sex, theta, discrete = FALSE){
@@ -145,7 +145,7 @@ fit.morphometry.scsbio <- function(x, y, z, sex, theta, discrete = FALSE){
                     p_window = 2.0)                  # Logit-scale splm window width parameter(s) for mature proportions.
       }
       if (sex == 2){
-         # Male morphometry initial values:
+         # Female morphometry initial values:
          theta <- c(beta_immature = c(-2.72, 1.228), # Log-scale immature morphometric coefficients.
                     beta_mature = c(-2.80, 1.30),    # Log-scale mature morphometric coefficients.
                     log_sigma = -3,                  # Log-scale standard error.

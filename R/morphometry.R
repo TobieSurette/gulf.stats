@@ -10,6 +10,10 @@
 #' @param fit Logical value specifying whether to fit the model to the data.
 #' @param discrete Logical value specifying whether the morphoemtric data are rounded.
 #'
+#' @examples
+#' x <- read.scsbio(2010)
+#' v <- morphometry(x)
+
 
 #' @export
 morphometry <- function(x, ...) UseMethod("morphometry")
@@ -32,6 +36,7 @@ morphometry.scsbio <- function(x, y, z, theta, sex, fit = TRUE, discrete = FALSE
    if ("scsbio" %in% names(x)){
       x <- x$carapace.width
       y <- y$chela.height
+      y[which(x$sex == 2)] <- y$abdomen.width
       sex <- x$sex
    }
 
@@ -104,4 +109,3 @@ morphometry.scsbio <- function(x, y, z, theta, sex, fit = TRUE, discrete = FALSE
 
    return(v)
 }
-
