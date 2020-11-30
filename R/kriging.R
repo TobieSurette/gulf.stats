@@ -31,17 +31,20 @@
 #'
 #' @examples
 #' # Worked out kriging example:
+#' library(gulf.graphics)
 #' s <- read.scsset(2020, valid = 1, survey = "regular") # Read tow data.
 #' b <- read.scsbio(s) # Read biological data.
 #' import(s, fill = 0) <- catch(b, category = "COM", weight = TRUE, as.hard.shell = TRUE, units = "t") # Calculate and import commercial catch weights.
 #' s["COM"] <- 1000000 * s["COM"] / repvec(s$swept.area, ncol = length("COM")) # Standardize by swept area.
-#' k <- ked(s, variable = "COM") # Perform kriging.
+#' v <- ked(s, variable = "COM") # Perform kriging.
 #' p <- read.gulf.spatial("kriging polygons rda") # Load kriging polygons.
-#' summary(k, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")]) # Calculate biomass and statistics.
+#' summary(v, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")]) # Calculate biomass and statistics.
 #'
 #' # More succinct version:
+#' library(gulf.graphics)
+#' p <- read.gulf.spatial("kriging polygons rda") # Load kriging polygons.
 #' v <- ked(year = 2020, category = "COM", weight = TRUE, as.hard.shelled = TRUE, units = "t")
-#' summary(k, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")])
+#' summary(v, polygon = p[c("gulf", "zone12", "zone19", "zoneE", "zoneF")])
 
 #' @export
 ked <- function(x, ...) UseMethod("ked")

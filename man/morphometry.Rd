@@ -25,7 +25,7 @@ morphometry(x, ...)
 
 \item{fit}{Logical value specifying whether to fit the model to the data.}
 
-\item{discrete}{Logical value specifying whether the morphoemtric data are rounded.}
+\item{discrete}{Logical value specifying whether the morphometric data are rounded.}
 }
 \description{
 Functions to analyze morphometric data.

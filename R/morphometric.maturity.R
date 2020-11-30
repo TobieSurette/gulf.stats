@@ -3,11 +3,17 @@
 #' @description Functions to determine sexual maturity from morphometric measurements.
 #'
 #' @param x Data object.
-#' @param probability Logical value specifying whether the morphoemtric data are rounded.
+#' @param probability Logical value specifying whether the morphometric data are rounded.
 #'
 #' @examples
-#' x <- read.scsbio(2010)
+#' # Male morphometric maturity:
+#' x <- read.scsbio(2010, sex = 1)
 #' v <- morphometric.maturity(x)
+#' plot(c(0, 140), c(0, 40), type = "n", xlab = "Carapace width(m)", ylab = "Chela height(m)", xaxs = "i", yaxs = "i")
+#' grid()
+#' points(x$carapace.width[v], x$chela.height[v], pch = 21, bg = "red", cex = 0.2, lwd = 0.2)
+#' points(x$carapace.width[!v], x$chela.height[!v], pch = 21, bg = "blue", cex = 0.2, lwd = 0.2)
+#' box()
 #'
 #' @seealso \code{\link{morphometry}}
 #' @seealso \code{\link[gulf.data]{maturity}}
@@ -33,17 +39,22 @@ morphometric.maturity.scsbio <- function(x, probability = FALSE, ...){
             if (i == 2) y <- x$abdomen.width[ix]
 
             # Round off to 0.2mm to increase optimization speed:
-            r <- aggregate(list(n = y), list(x = round(2*x$carapace.width[ix])/2, y = round(2*y)/2), length)
+            bin <- 0.5
+            y <- round(y / bin) * bin
+            r <- aggregate(list(n = y), list(x = round(x$carapace.width[ix] / bin) * bin, y = y), length)
 
             # Unconditional maturity identification:
-            z <- rep(NA, length(ix))
-            z[which(x$carapace.width[ix] < 30)] <- 0 # Crab smaller than 30mm CW are considered immature.
+            r$z <- rep(NA, nrow(r))
+            r$z[which(r$x < 30)] <- 0 # Crab smaller than 30mm CW are considered immature.
 
             # Fit morphometric model:
-            theta <- fit.morphometry.scsbio(x$carapace.width[ix], y, z, n, sex = i, discrete = years[j] < 1998)
+            theta <- fit.morphometry.scsbio(r$x, r$y, r$z, n = r$n, sex = i, discrete = years[j] < 1998, trace = 0)
 
             # Extract maturity proportions:
-            v[ix] <- morphometry(x$carapace.width[ix], y, z = z, theta = theta, discrete = years[j] < 1998)$p_mature_posterior
+            r$p <- morphometry.scsbio(r$x, r$y, r$z, theta = theta, fit = FALSE, discrete = years[j] < 1998)$p_mature_posterior
+
+            # Map probabilities to original data:
+            v[ix] <- r$p[match(data.frame(x = round(x$carapace.width[ix] / bin) * bin, y = round(y / bin) * bin), r)]
          }
       }
    }

@@ -10,7 +10,7 @@ fit(x, ...)
 
 \method{fit}{variogram}(x, model = "spherical", nugget = TRUE, distance.exponent = 0, inits, ...)
 
-\method{fit}{morphometry.scsbio}(x, y, z, sex, theta, discrete = FALSE)
+\method{fit}{morphometry.scsbio}(x, y, z, n = 1, sex, theta, discrete = FALSE, print = FALSE, trace = 0)
 }
 \arguments{
 \item{x}{Data object or numeric vector representing a morphometric predictor variable..}
@@ -27,9 +27,17 @@ export}
 
 \item{z}{Binary classification vector classifying morphometric data into discrete maturity groups.}
 
+\item{n}{Number of observations for each (x,y) pair (optional).}
+
 \item{sex}{Biological sex which specifies the type of analysis or initial values to be applied.}
 
 \item{theta}{Parameter vector.}
+
+\item{discrete}{Logical value specifying whether to treat observations as discrete rounded values.}
+
+\item{print}{Logical value specifying whether to print information about progress during model fitting.}
+
+\item{trace}{Optimization control output (see \code{\link[stats]{optim}}).}
 }
 \description{
 Functions to fit statistical models to data.

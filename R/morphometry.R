@@ -8,7 +8,7 @@
 #' @param theta Named model parameter vector.
 #' @param sex Biological sex.
 #' @param fit Logical value specifying whether to fit the model to the data.
-#' @param discrete Logical value specifying whether the morphoemtric data are rounded.
+#' @param discrete Logical value specifying whether the morphometric data are rounded.
 #'
 #' @examples
 #' x <- read.scsbio(2010)
