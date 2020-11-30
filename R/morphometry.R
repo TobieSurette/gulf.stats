@@ -14,7 +14,6 @@
 #' x <- read.scsbio(2010)
 #' v <- morphometry(x)
 
-
 #' @export
 morphometry <- function(x, ...) UseMethod("morphometry")
 
@@ -32,6 +31,7 @@ morphometry.default <- function(x, y, species, kurtotic = FALSE, ...){
 
 #' @describeIn morphometry Perform morphometric regression analysis for snow crab biological data.
 #' @export
+#' @export morphometry.scsbio
 morphometry.scsbio <- function(x, y, z, theta, sex, fit = TRUE, discrete = FALSE){
    if ("scsbio" %in% names(x)){
       x <- x$carapace.width

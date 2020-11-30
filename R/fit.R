@@ -194,7 +194,7 @@ fit.morphometry.scsbio <- function(x, y, z, sex, theta, discrete = FALSE){
 
    # Fit immature regression:
    cat("Fitting complete model.\n")
-   theta <- optim(theta, loglike, x = x, y = y, z = z, discrete = discrete, control = list(trace = 3, maxit = 5000))$par
+   theta <- optim(theta, loglike, x = x, y = y, z = z, discrete = discrete, control = list(trace = 0, maxit = 5000))$par
 
    return(theta)
 }

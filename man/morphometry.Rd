@@ -37,3 +37,7 @@ Functions to analyze morphometric data.
 \item \code{scsbio}: Perform morphometric regression analysis for snow crab biological data.
 }}
 
+\examples{
+x <- read.scsbio(2010)
+v <- morphometry(x)
+}

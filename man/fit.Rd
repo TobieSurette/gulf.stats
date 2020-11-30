@@ -38,6 +38,6 @@ Functions to fit statistical models to data.
 \itemize{
 \item \code{variogram}: Fit a model to empirical variogram data.
 
-\item \code{morphometry.scsbio}: Fit a morphometric model to snow crab biological data.
+\item \code{morphometry.scsbio}: Fit a morphometric model to snow crab morphometric data.
 }}
 

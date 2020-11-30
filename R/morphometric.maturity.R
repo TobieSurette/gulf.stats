@@ -12,12 +12,11 @@
 #' @seealso \code{\link{morphometry}}
 #' @seealso \code{\link[gulf.data]{maturity}}
 
-#' @describeIn morphometric.maturity Generic morphometric maturity method.
 #' @export morphometric.maturity
 morphometric.maturity <- function(x, ...) UseMethod("morphometric.maturity")
 
 #' @describeIn morphometric.maturity Determine morphometric maturity from snow crab biological data.
-#' @export morphometric.maturity
+#' @rawNamespace S3method(morphometric.maturity,scsbio)
 morphometric.maturity.scsbio <- function(x, probability = FALSE, ...){
    # Survey years:
    years <- sort(unique(year(x)))
@@ -28,20 +27,20 @@ morphometric.maturity.scsbio <- function(x, probability = FALSE, ...){
          # Read data:
          ix <- which((year(x) == years[j]) & (x$sex == i) & !is.na(b$carapace.width))
 
-         if (length(ix)){
+         if (length(ix) > 0){
             # Prepare variables:
             if (i == 1) y <- x$chela.height[ix]
             if (i == 2) y <- x$abdomen.width[ix]
 
             # Unconditional maturity identification:
-            z <- rep(NA, nrow(x))
-            z[which(x < 30)] <- 0 # Crab smaller than 30mm CW are considered immature.
+            z <- rep(NA, length(ix))
+            z[which(x$carapace.width[ix] < 30)] <- 0 # Crab smaller than 30mm CW are considered immature.
 
             # Fit morphometric model:
             theta <- fit.morphometry.scsbio(x$carapace.width[ix], y, z, sex = i, discrete = years[j] < 1998)
 
             # Extract maturity proportions:
-            v[ix] <- morphometry.scsbio(x, y, theta = theta, discrete = years[j] < 1998)$p_mature_posterior
+            v[ix] <- morphometry(x$carapace.width[ix], y, z = z, theta = theta, discrete = years[j] < 1998)$p_mature_posterior
          }
       }
    }
