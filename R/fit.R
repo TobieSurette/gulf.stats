@@ -5,6 +5,7 @@
 #' @param x Data object or numeric vector representing a morphometric predictor variable..
 #' @param y Numeric vector representing a morphometric response variable.
 #' @param z Binary classification vector classifying morphometric data into discrete maturity groups.
+#' @param n Number of observations for each (x,y) pair.
 #' @param sex Biological sex which specifies the type of analysis or initial values to be applied.
 #' @param theta Parameter vector.
 #' @param model Character string specifying the model type.
@@ -129,8 +130,7 @@ fit.variogram <- function(x, model = "spherical", nugget = TRUE, distance.expone
 #' @describeIn fit Fit a morphometric model to snow crab morphometric data.
 #' @export fit.morphometry.scsbio
 #' @rawNamespace S3method(fit.morphometry,scsbio)
-fit.morphometry.scsbio <- function(x, y, z, sex, theta, discrete = FALSE){
-
+fit.morphometry.scsbio <- function(x, y, z, n = 1, sex, theta, discrete = FALSE, control = list(trace = 3, maxit = 1000)){
    if (!missing(sex) & missing(theta)){
       if (sex == 1){
          # Male morphometry initial values:
@@ -159,42 +159,43 @@ fit.morphometry.scsbio <- function(x, y, z, sex, theta, discrete = FALSE){
    }
 
    # Negative log-likelihood function:
-   loglike <- function(theta, x, y, z, fixed, discrete = FALSE){
+   loglike <- function(theta, x, y, z, n = 1, fixed, discrete = FALSE){
       if (!missing(fixed)) theta <- c(theta, fixed)
-      return(-sum(morphometry.scsbio(x, y, z = z, theta = theta, discrete = discrete)$loglike))
+      v <- -sum(n * morphometry.scsbio(x, y, z, theta = theta, discrete = discrete)$loglike)
+      return(v)
    }
 
    # Fit proportions
    cat("Fitting mature proportion parameters.\n")
    fixed <- theta[-grep("^p_", names(theta))]
    theta <- theta[setdiff(names(theta), names(fixed))]
-   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 1000))$par
+   theta <- optim(theta, loglike, x = x, y = y, z = z, n = n, fixed = fixed, discrete = discrete, control = control)$par
    theta <- c(theta, fixed)
 
    # Fit kurtotic parameters:
    cat("Fitting kurtosis parameters.\n")
    fixed <- theta[-grep("kurtotic", names(theta))]
    theta <- theta[setdiff(names(theta), names(fixed))]
-   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 500))$par
+   theta <- optim(theta, loglike, x = x, y = y, z = z, n = n, fixed = fixed, discrete = discrete, control = control)$par
    theta <- c(theta, fixed)
 
    # Fit immature regression:
    cat("Fitting immature regression coefficients.\n")
    fixed <- theta[-grep("immature", names(theta))]
    theta <- theta[setdiff(names(theta), names(fixed))]
-   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 500))$par
+   theta <- optim(theta, loglike, x = x, y = y, z = z, n = n, fixed = fixed, discrete = discrete, control = control)$par
    theta <- c(theta, fixed)
 
    # Fit non-regression coefficients:
    cat("Fitting non-regression coefficients.\n")
    fixed <- theta[grep("mature", names(theta))]
    theta <- theta[setdiff(names(theta), names(fixed))]
-   theta <- optim(theta, loglike, x = x, y = y, z = z, fixed = fixed, discrete = discrete, control = list(trace = 0, maxit = 2000))$par
+   theta <- optim(theta, loglike, x = x, y = y, z = z, n = n, fixed = fixed, discrete = discrete, control = control)$par
    theta <- c(theta, fixed)
 
    # Fit immature regression:
    cat("Fitting complete model.\n")
-   theta <- optim(theta, loglike, x = x, y = y, z = z, discrete = discrete, control = list(trace = 0, maxit = 5000))$par
+   theta <- optim(theta, loglike, x = x, y = y, z = z, n = n, discrete = discrete, control = control)$par
 
    return(theta)
 }
