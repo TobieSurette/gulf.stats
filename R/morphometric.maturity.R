@@ -7,7 +7,7 @@
 #'
 #' @examples
 #' # Male morphometric maturity:
-#' x <- read.scsbio(2010, sex = 1)
+#' x <- read.scsbio(2011, sex = 1)
 #' v <- morphometric.maturity(x)
 #' plot(c(0, 140), c(0, 40), type = "n", xlab = "Carapace width(m)", ylab = "Chela height(m)", xaxs = "i", yaxs = "i")
 #' grid()
@@ -42,10 +42,12 @@ morphometric.maturity.scsbio <- function(x, probability = FALSE, ...){
             bin <- 0.5
             y <- round(y / bin) * bin
             r <- aggregate(list(n = y), list(x = round(x$carapace.width[ix] / bin) * bin, y = y), length)
+            tmp <- table((round(x$carapace.width[ix] / bin) * bin)[is.na(y)])
+            r <- rbind(r, data.frame(x = as.numeric(names(tmp)), y = NA, n = as.numeric(tmp)))
 
             # Unconditional maturity identification:
             r$z <- rep(NA, nrow(r))
-            r$z[which(r$x < 30)] <- 0 # Crab smaller than 30mm CW are considered immature.
+            r$z[which(r$x < 35)] <- 0 # Crab smaller than 30mm CW are considered immature.
 
             # Fit morphometric model:
             theta <- fit.morphometry.scsbio(r$x, r$y, r$z, n = r$n, sex = i, discrete = years[j] < 1998, trace = 0)

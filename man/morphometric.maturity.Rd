@@ -24,7 +24,7 @@ Functions to determine sexual maturity from morphometric measurements.
 
 \examples{
 # Male morphometric maturity:
-x <- read.scsbio(2010, sex = 1)
+x <- read.scsbio(2011, sex = 1)
 v <- morphometric.maturity(x)
 plot(c(0, 140), c(0, 40), type = "n", xlab = "Carapace width(m)", ylab = "Chela height(m)", xaxs = "i", yaxs = "i")
 grid()
