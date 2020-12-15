@@ -48,11 +48,9 @@ update.parameters <- function(x, obj, fixed, random, map){
    }
 
    # Update fixed parameters:
-   print("fixed")
    vars <- unique(names(fixed))
    if (length(vars) > 0){
       for (i in 1:length(vars)){
-         print(i)
          if (vars[i] %in% names(x)){
             v <- as.numeric(fixed[names(fixed) == vars[i]])
             if (!missing(map)) if (vars[i] %in% names(map)) v <- v[map[[vars[i]]]]
@@ -66,18 +64,14 @@ update.parameters <- function(x, obj, fixed, random, map){
    }
 
    # Update random parameters:
-   print("random")
    vars <- unique(names(random))
    if (length(vars) > 0){
       for (i in 1:length(vars)){
-         print(i)
          if (vars[i] %in% names(x)){
             v <- as.numeric(random[names(random) == vars[i]])
             if (!missing(map)) if (vars[i] %in% names(map)) v <- v[map[[vars[i]]]]
             if (length(v) == 1) v <- rep(v, length(x[[vars[i]]]))
             dim(v) <- dim(x[[vars[i]]])
-            print(v)
-            print(x[[vars[i]]])
             x[[vars[i]]][!is.na(v)] <- v[!is.na(v)]
          }else{
             print("'", vars[i], "' not in parameters.")
