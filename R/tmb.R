@@ -104,7 +104,7 @@ update.map <- function(map, free.variables, fixed.variables){
       fixed.variables <- fixed.variables[which(fixed.variables %in% names(map))]
       if (length(fixed.variables) > 0){
          for (i in 1:length(fixed.variables)){
-            map[[fixed.variables[i]]] <- factor(rep(NA, length(map[[free.variables[i]]])))
+            map[[fixed.variables[i]]] <- factor(rep(NA, length(map[[fixed.variables[i]]])))
          }
       }
    }

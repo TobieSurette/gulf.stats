@@ -11,7 +11,7 @@ parameters.cpp(x)
 
 data.cpp(x)
 
-\method{update}{parameters}(x, obj, fixed, random)
+\method{update}{parameters}(x, obj, fixed, random, map)
 
 \method{update}{map}(map, free.variables, fixed.variables)
 }
