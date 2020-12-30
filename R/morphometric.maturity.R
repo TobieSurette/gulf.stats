@@ -57,7 +57,7 @@ morphometric.maturity.scsbio <- function(x, probability = FALSE, ...){
             r$p <- morphometry.scsbio(r$x, r$y, r$z, theta = theta, fit = FALSE, discrete = years[j] < 1998)$p_mature_posterior
 
             # Map probabilities to original data:
-            v[ix] <- r$p[match(data.frame(x = round(x$carapace.width[ix] / bin) * bin, y = round(y / bin) * bin), r)]
+            v[ix] <- r$p[gulf.utils::match(data.frame(x = round(x$carapace.width[ix] / bin) * bin, y = round(y / bin) * bin), r)]
          }
       }
    }
