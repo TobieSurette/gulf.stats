@@ -74,10 +74,12 @@ plot.variogram <- function(x, scale, cex = 1.5, cex.axis = 1.25, xaxt = "s", yax
    #text(0, (x$var / scale) + 0.030*diff(par("usr")[3:4]), paste0("Var(sample) = ", round(x$var / scale,3)), cex = 1.25, pos = 4, col = "chartreuse3")
    #print(str(x))
    #v <- floor(log10(par("usr")[4]))
+
+   print(x$range)
    str <- ""
-   if (is.finite(range) & !is.na(range)) str <- c(str, paste0("range = ", round(range,1), x$distance.units))
-   str <- c(str, paste0("sill = ", round(sill/ 10^v ,3), " x 10^", v),
-                 paste0("nugget = ", round(nugget / 10^v,3), " x 10^", v),
+   if (is.finite(x$range) & !is.na(x$range)) str <- c(str, paste0("range = ", round(x$range,1), x$distance.units))
+   str <- c(str, paste0("sill = ", round(x$sill / 10^v ,3), " x 10^", v),
+                 paste0("nugget = ", round(x$nugget / 10^v,3), " x 10^", v),
                  paste0("Var[z] = ", round(x$var / 10^v,3), " x 10^", v))
 
    dx <- diff(par("usr")[1:2])
