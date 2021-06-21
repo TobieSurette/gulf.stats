@@ -1,4 +1,4 @@
-#' Template Model Builder (TMB) Functions
+#' @title Template Model Builder (TMB) Functions
 #'
 #' @description Functions for use with Template Model Builder (TMB).
 #'
