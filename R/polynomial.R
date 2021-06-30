@@ -102,6 +102,7 @@ print.polynomial <- function(x){
    cat(paste0("p(x) = ", s, "\n"))
 }
 
+#' @rawNamespace S3method(as.character,polynomial)
 as.character.polynomial <- function(x){
    # Prepare polynomial coefficients:
    beta <- coef(x)

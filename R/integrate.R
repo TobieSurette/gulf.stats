@@ -19,16 +19,21 @@ integrate.polynomial <- function(x){
 
 #' @export
 #' @describeIn polynomial Spline integration method.
-integrate.spline <- function(x){
+integrate.spline <- function(x, n = 1){
+   if (n == 0) return(x)
    p <- attr(x, "polynomial")
    knots <- c(-Inf, attr(x, "knots"), Inf)
-   k <- 0
-   for (i in 1:length(p)){
-      p[[i]] <- integrate(p[[i]])
-      k <- k + p[[i]](knots[i+1]) - p[[i]](knots[i])
-      p[[i]] <- k * p[[i]]
+   for (i in 1:n){
+      p[[1]] <- integrate(p[[1]])
+      k <- p[[1]](knots[2]) - p[[1]](knots[1])
+      for (j in 2:length(p)){
+         p[[j]] <- integrate(p[[j]])
+         p[[j]] <- p[[j]] + (-p[[j]](knots[j])) + k
+         k <- p[[j]](knots[j+1])
+      }
    }
 
+   # Build spline object:
    f <- spline.default(polynomial = p, knots = attr(x, "knots"))
 
    return(f)
