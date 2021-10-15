@@ -12,35 +12,25 @@
 #'
 #'
 
-#' @export plm.basis
-plm.basis <- function(x, scale = 1, skewness = 0, degree = 3, ...){
-   # Convert skewness to proportions:
-   w <- 1 / (1+exp(-skewness))
-
-   # Define knots:
-   lower <- (w-1) * scale
-   upper <- w * scale
-
-   # Define basis:
-   if (degree == 3){
-      k <- (2 / (abs(lower) + abs(upper)))
-      p <- c(polynomial(0),
-             k * polynomial(c(1, 0, -3/lower^2, 2/lower^3)),
-             k * polynomial(c(1, 0, -3/upper^2, 2/upper^3)),
-             polynomial(0))
-      knots <- c(lower, 0, upper)
-      f <- spline.default(polynomial = p, knots = knots)
-   }
-
-   return(f)
-}
-
 #' @export
-plm <- function(x, knots = 0, intercept = 0, slope = c(0, 1), scale = 1, skewness = 0, ...){
+plm <- function(x, theta, knots = 0, intercept = 0, slope = c(0, 1), scale = 1, skewness = 0, ...){
+   # Parse parameter vector:
+   if (!missing(theta)){
+      theta[grep("^log_", names(theta))] <- exp(theta[grep("^log_", names(theta))])
+      knots     <- theta[grep("knots*[0-9]", names(theta))]
+      slope     <- theta[sort(grep("slopes*[0-9]", names(theta)))]
+      scale     <- theta[sort(grep("scales*[0-9]+", names(theta)))]
+      skewness  <- theta[sort(grep("skewness", names(theta)))]
+      intercept <- theta[sort(grep("intercept", names(theta)))]
+   }
+   knots <- sort(knots)
+
    # Number of knots:
    k <- length(knots)
 
    # Parse input arguments:
+   if (length(scale) == 0) scale <- 1
+   if (length(skewness) == 0) skewness <- 0
    if (length(slope) != (k+1)) stop("'slope' must have one element more than 'knots'.")
    if (length(scale) == 1)    scale    <- rep(scale, k)
    if (length(skewness) == 1) skewness <- rep(skewness, k)
@@ -53,7 +43,7 @@ plm <- function(x, knots = 0, intercept = 0, slope = c(0, 1), scale = 1, skewnes
       if (length(k > 0)){
          # Generate basis functions:
          for (i in 1:k){
-            b <- plm.basis(scale = scale[i], slope = slope[i], skewness = skewness[i])
+            b <- basis.plm(scale = scale[i], slope = slope[i], skewness = skewness[i])
             b <- integrate.spline(b, n = 2)
             y <- y + (slope[i+1]-slope[i]) * b(x - knots[i])
          }
@@ -64,3 +54,4 @@ plm <- function(x, knots = 0, intercept = 0, slope = c(0, 1), scale = 1, skewnes
    # Return result:
    if (missing(x)) return(fun) else return(fun(x))
 }
+

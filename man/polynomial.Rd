@@ -20,7 +20,7 @@
 
 \method{integrate}{polynomial}(x)
 
-\method{integrate}{spline}(x)
+\method{integrate}{spline}(x, n = 1)
 
 polynomial(beta)
 
