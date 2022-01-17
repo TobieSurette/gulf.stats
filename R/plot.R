@@ -43,7 +43,7 @@ plot.variogram <- function(x, scale, cex = 1.5, cex.axis = 1.25, xaxt = "s", yax
         xlim = xlim, ylim = ylim, xlab = "", ylab = "", xaxs = "i", yaxs = "i",
         cex = cex, cex.axis = cex.axis, type = "n", xaxt = "n", yaxt = "n", ...)
    mtext(xlab, 1, 2.5, cex = cex)
-   mtext(ylab, 2, 2, cex = cex)
+   mtext(ylab, 2, 2, at = 0, cex = cex)
    grid()
 
    lines(par("usr")[1:2], c(x$var, x$var) / scale, col = "chartreuse3", lwd = 2, lty = "dashed")
@@ -75,7 +75,6 @@ plot.variogram <- function(x, scale, cex = 1.5, cex.axis = 1.25, xaxt = "s", yax
    #print(str(x))
    #v <- floor(log10(par("usr")[4]))
 
-   print(x$range)
    str <- ""
    if (is.finite(x$range) & !is.na(x$range)) str <- c(str, paste0("range = ", round(x$range,1), x$distance.units))
    str <- c(str, paste0("sill = ", round(x$sill / 10^v ,3), " x 10^", v),
