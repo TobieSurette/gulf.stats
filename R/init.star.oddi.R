@@ -8,6 +8,7 @@
 #' @examples
 #' x <- read.star.oddi(year = 2014, tow.id = tow.id, location = "tilt")
 
+
 init.tilt <- function(x, init){
    s <- read.scsset(year = unique(year(x)), tow.id = tow.id(x))
    init <- c(time(s, "start"), time(s, "stop"))
@@ -239,7 +240,3 @@ times.tilt <- function(x){
 
    return(xp)
 }
-
-
-
-

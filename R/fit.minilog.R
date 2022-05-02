@@ -8,7 +8,7 @@
 #' @examples
 #' x <- read.minilog(year = 2014, tow.id = tow.id, location = "tilt")
 
-#' @rawNamespace S3method(init,minilog)
+#' @rawNamespace S3method(fit,minilog)
 fit.minilog <- function(x, truncate = FALSE){
    # Define log-likelihood function to find initial touchdown and liftoff points:
    loglike.mix <- function(theta, x, y, precision){
