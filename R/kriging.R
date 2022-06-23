@@ -1,4 +1,4 @@
-#' Kriging Spatial Modelling
+#' @title Kriging with External Drift
 #'
 #' @description Spatial interpolation and integration funcions using kriging.
 #'
@@ -76,7 +76,7 @@ ked.default <- function(x, x0, y, z, z0, nugget = 0, sill, range, positive = TRU
    k0 = k[,n+1] # Prediction versus data covariance values.
    k = k[,1:n]  # Data covariance values.
 
-   # ExtetrAdd external drift variable:
+   # Add external drift variable:
    k <- rbind(cbind(k, 1), 1)
    k[n+1, n+1] <- 0
    k <- rbind(cbind(k, c(z, 0)), c(z, 0, 0))
@@ -180,14 +180,14 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
                tmp <- data.frame(name = rep(NA, nrow(res)))
                names(tmp) <- years[k]
                res <- cbind(res, tmp)
-               index <- match(v[[k,j]]$empirical$start.distance, res$start.distance)
-               res[index, ncol(res)] <- v[[k,j]]$empirical$semi.variance / v[[k,j]]$var
+               ix <- match(v[[k,j]]$empirical$start.distance, res$start.distance)
+               res[ix, ncol(res)] <- v[[k,j]]$empirical$semi.variance / v[[k,j]]$var
             }
             res$h <- NA
             res$n <- NA
-            index <- match(v[[nrow(v),j]]$empirical$start.distance, res$start.distance)
-            res[index, "h"] <- v[[nrow(v),j]]$empirical$h
-            res[index, "n"] <- v[[nrow(v),j]]$empirical$n
+            ix <- match(v[[nrow(v),j]]$empirical$start.distance, res$start.distance)
+            res[ix, "h"] <- v[[nrow(v),j]]$empirical$h
+            res[ix, "n"] <- v[[nrow(v),j]]$empirical$n
             res$semi.variance <- v[[nrow(v),j]]$var * apply(res[, as.character(years)], 1, mean, na.rm = TRUE)
             if (length(which(is.na(res$h) | is.na(res$n))) > 0) res <- res[-which(is.na(res$h) | is.na(res$n)), ]
 
@@ -235,10 +235,10 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    for (i in 1:nrow(x)){
       dx <- x$xkm[i] - depth$xkm
       dy <- x$ykm[i] - depth$ykm
-      index <- order(dx^2 + dy ^2)[1:4]
-      xx <- depth$xkm[index]
-      yy <- depth$ykm[index]
-      zz <- depth$depth[index]
+      ix <- order(dx^2 + dy ^2)[1:4]
+      xx <- depth$xkm[ix]
+      yy <- depth$ykm[ix]
+      zz <- depth$depth[ix]
       x$depth[i] <- interp(x = xx, y = yy, z = zz, x$xkm[i], x$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z
    }
 
@@ -259,10 +259,10 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
          if ((i %% 500) == 0) cat(paste0("   Interpolating ", i, " of ", nrow(x0), " points.\n"))
          dx <- x0$xkm[i] - depth$xkm
          dy <- x0$ykm[i] - depth$ykm
-         index <- head(order(dx^2 + dy^2))[1:4]
-         xx <- depth$xkm[index]
-         yy <- depth$ykm[index]
-         zz <- depth$depth[index]
+         ix <- head(order(dx^2 + dy^2))[1:4]
+         xx <- depth$xkm[ix]
+         yy <- depth$ykm[ix]
+         zz <- depth$depth[ix]
          flag <- all(x0$xkm[i] > xx) | all(x0$xkm[i] < xx) | all(x0$ykm[i] > yy) | all(x0$ykm[i] < yy)
          if (!flag){
             if (all(zz == 0)) x0$depth[i] <- 0 else x0$depth[i] <- akima::interp(x = xx, y = yy, z = zz, x0$xkm[i], x0$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z[1,1]
@@ -274,7 +274,7 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    }
 
    near <- function(x, x0, n){
-      # NEAR - Get indices of nearest data n points in each of the four cartesian quadrants.
+      # NEAR - Get indices of nearest data n points in each of the four Cartesian quadrants.
       d = (x[,1]-x0[1])^2 + (x[,2]-x0[2])^2;
 
       ii <- list()
@@ -301,25 +301,25 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       mu.tmp <- matrix(NA, nrow = nrow(x0))
       var.tmp <- mu.tmp
       cat(paste0("\nKriging variable '", variables[i], "'\n"))
-      index <- gulf.graphics::in.polygon(gulf.graphics::as.polygon(polygon$longitude, polygon$latitude),
+      ix <- gulf.graphics::in.polygon(gulf.graphics::as.polygon(polygon$longitude, polygon$latitude),
                                          x0$longitude, x0$latitude)
-      index <- which(index)
-      for (j in 1:length(index)){
-         if ((j %% 500) == 0) cat(paste0("      Kriging ", j, " of ", length(index), " points.\n"))
+      ix <- which(ix)
+      for (j in 1:length(ix)){
+         if ((j %% 500) == 0) cat(paste0("      Kriging ", j, " of ", length(ix), " points.\n"))
 
-         id <- near(x[, c("xkm", "ykm")], unlist(x0[index[j], c("xkm", "ykm")]), n)
+         id <- near(x[, c("xkm", "ykm")], unlist(x0[ix[j], c("xkm", "ykm")]), n)
 
          res <- ked.default(x = x[id, c("xkm", "ykm")],
-                            x0 = x0[index[j], c("xkm", "ykm")],
+                            x0 = x0[ix[j], c("xkm", "ykm")],
                             y = x[id, variables[i]],
                             z = x[id, "depth"],
-                            z0 = x0[index[j], "depth"],
+                            z0 = x0[ix[j], "depth"],
                             nugget = parameters$nugget[i],
                             sill   = parameters$sill[i] - parameters$nugget[i],
                             range  = parameters$range[i])
 
-         mu.tmp[index[j]] <- res$mean
-         var.tmp[index[j]] <- res$var
+         mu.tmp[ix[j]] <- res$mean
+         var.tmp[ix[j]] <- res$var
       }
       cat("\n")
 
