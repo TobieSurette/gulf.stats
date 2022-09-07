@@ -134,7 +134,7 @@ event.times.pressure <- function(x, model = "linear"){
    return(xp)
 }
 
-event.times.tilt <- function(x){
+event.times.tilt <- function(x, plot = FALSE, add = FALSE){
    # Initialize change-point values:
    #xp <- init.tilt(x)
    xp <- event.times.pressure(x)
@@ -222,22 +222,24 @@ event.times.tilt <- function(x){
    p_liftoff   <- logistic((t - xp_liftoff) / window_liftoff)
 
    # ======================================================================================
-   plot(t, x$tilt.x, pch = 21, bg = "grey", cex = 0.5, ylim = c(-15, 60), yaxs = "i")
-   grid()
-   vline(theta[grep("xp", names(theta))], lwd = 2, col = "red", lty = "dashed")
+   if (plot){
+      plot(t, x$tilt.x, pch = 21, bg = "grey", cex = 0.5, ylim = c(-15, 60), yaxs = "i", add = add)
+      grid()
+      vline(theta[grep("xp", names(theta))], lwd = 2, col = "red", lty = "dashed")
 
-   m <- mu["descent_x"] +
-        p_touchdown * (mu["bottom_x"] - mu["descent_x"]) +
-        p_liftoff * (mu["ascent_x"] - mu["bottom_x"])
+      m <- mu["descent_x"] +
+         p_touchdown * (mu["bottom_x"] - mu["descent_x"]) +
+         p_liftoff * (mu["ascent_x"] - mu["bottom_x"])
 
-   s <- sigma["descent_x"] +
-        p_touchdown * (sigma["bottom_x"] - sigma["descent_x"]) +
-        p_liftoff * (sigma["ascent_x"] - sigma["bottom_x"])
+      s <- sigma["descent_x"] +
+         p_touchdown * (sigma["bottom_x"] - sigma["descent_x"]) +
+         p_liftoff * (sigma["ascent_x"] - sigma["bottom_x"])
 
-   lines(t, m, col = "blue", lwd = 3)
-   lines(t, m - 1.96 * s, col = "blue", lwd = 2, lty = "dashed")
-   lines(t, m + 1.96 * s, col = "blue", lwd = 2, lty = "dashed")
-   hline(0, col = "red", lwd = 3, lty = "solid")
+      lines(t, m, col = "blue", lwd = 3)
+      lines(t, m - 1.96 * s, col = "blue", lwd = 2, lty = "dashed")
+      lines(t, m + 1.96 * s, col = "blue", lwd = 2, lty = "dashed")
+      hline(0, col = "red", lwd = 3, lty = "solid")
+   }
 
    xp <- time(x[c(which.min(abs(t - theta["xp_touchdown"])), which.min(abs(t - theta["xp_liftoff"]))), ])
 
