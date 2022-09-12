@@ -235,11 +235,15 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
    for (i in 1:nrow(x)){
       dx <- x$xkm[i] - depth$xkm
       dy <- x$ykm[i] - depth$ykm
-      ix <- order(dx^2 + dy ^2)[1:4]
+      dist <- sqrt(dx^2 + dy^2)
+      ix <- order(dist)[1:4]
       xx <- depth$xkm[ix]
       yy <- depth$ykm[ix]
       zz <- depth$depth[ix]
-      x$depth[i] <- interp(x = xx, y = yy, z = zz, x$xkm[i], x$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z
+      x$depth[i] <- mean(zz)
+      #akima::interp(x = xx, y = yy, z = zz, x$xkm[i], x$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z
+      #pracma::interp2(x = xx, y = yy, Z = zz, xp = x$xkm[i], yp = x$ykm[i], method = c("linear"))
+      #interp::interp(x = xx, y = yy, z = zz, xo = x$xkm[i], yo = x$ykm[i], extrap = TRUE, duplicate = "mean")
    }
 
    # Define kriging interpolation grid:
