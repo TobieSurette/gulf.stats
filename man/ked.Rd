@@ -4,7 +4,7 @@
 \alias{ked}
 \alias{ked.default}
 \alias{ked.scsset}
-\title{Kriging Spatial Modelling}
+\title{Kriging with External Drift}
 \usage{
 ked(x, ...)
 
@@ -104,11 +104,11 @@ Spatial interpolation and integration funcions using kriging.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Perform kriging with external drift.
+\item \code{ked(default)}: Perform kriging with external drift.
 
-\item \code{scsset}: Perform kriging with external drift for snow crab data.
+\item \code{ked(scsset)}: Perform kriging with external drift for snow crab data.
+
 }}
-
 \examples{
 # Worked out kriging example:
 library(gulf.graphics)

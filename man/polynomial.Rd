@@ -47,27 +47,33 @@ Methods for creating, evaluating, manupulating and displaying polynomial functio
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{polynomial}: Polynomial derivation method.
+\item \code{polynomial(default)}: Polynomial object creation and evaluation.
 
-\item \code{spline}: Spline derivation method.
-
-\item \code{polynomial}: Polynomial integration method.
-
-\item \code{spline}: Spline integration method.
-
-\item \code{default}: Polynomial object creation and evaluation.
-
-\item \code{polynomial}: Polynomial unary and binary addition operator.
-
-\item \code{polynomial}: Polynomial unary and binary substraction operator.
-
-\item \code{polynomial}: Polynomial multiplication operator.
-
-\item \code{polynomial}: Polynomial print method.
-
-\item \code{polynomial}: Polynomial print method.
 }}
+\section{Methods (by generic)}{
+\itemize{
+\item \code{derive(polynomial)}: Polynomial derivation method.
 
+\item \code{integrate(polynomial)}: Polynomial integration method.
+
+\item \code{ + }: Polynomial unary and binary addition operator.
+
+\item \code{ - }: Polynomial unary and binary substraction operator.
+
+\item \code{ * }: Polynomial multiplication operator.
+
+\item \code{print(polynomial)}: Polynomial print method.
+
+\item \code{coef(polynomial)}: Polynomial print method.
+
+}}
+\section{Functions}{
+\itemize{
+\item \code{derive(spline)}: Spline derivation method.
+
+\item \code{integrate(spline)}: Spline integration method.
+
+}}
 \examples{
 p1 <- polynomial(1:3)    # Create polynomial 1 + 2*x + 3*x^2.
 p2 <- polynomial(0:5)    # Create polynomial x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5.

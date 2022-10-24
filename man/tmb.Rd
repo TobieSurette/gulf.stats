@@ -20,12 +20,12 @@ Functions for use with Template Model Builder (TMB).
 }
 \section{Functions}{
 \itemize{
-\item \code{parameters.cpp}: Extract model parameter name(s) from TMB model.
+\item \code{parameters.cpp()}: Extract model parameter name(s) from TMB model.
 
-\item \code{data.cpp}: Extract data variable name(s) from TMB model.
+\item \code{data.cpp()}: Extract data variable name(s) from TMB model.
 
-\item \code{update.parameters}: Update model parameters using TMB model output.
+\item \code{update(parameters)}: Update model parameters using TMB model output.
 
-\item \code{update.map}: Update model parameter map.
+\item \code{update(map)}: Update model parameter map.
+
 }}
-

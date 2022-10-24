@@ -32,10 +32,10 @@ Set of probability distributions.
 }
 \section{Functions}{
 \itemize{
-\item \code{djohnson}: Probability density function for the Johnson's SU distribution.
+\item \code{djohnson()}: Probability density function for the Johnson's SU distribution.
 
-\item \code{pjohnson}: Cumulative density function for the Johnson's SU distribution.
+\item \code{pjohnson()}: Cumulative density function for the Johnson's SU distribution.
 
-\item \code{rjohnson}: Cumulative density function for the Johnson's SU distribution.
+\item \code{rjohnson()}: Cumulative density function for the Johnson's SU distribution.
+
 }}
-

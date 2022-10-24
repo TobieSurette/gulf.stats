@@ -11,7 +11,7 @@ Generate a summary for a statistical model.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{ked}: Generate a summary of a 'ked' object. The output includes sample and kriged estimates,
+\item \code{summary(ked)}: Generate a summary of a 'ked' object. The output includes sample and kriged estimates,
 along with error estimates.
-}}
 
+}}

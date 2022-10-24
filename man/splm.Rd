@@ -25,9 +25,9 @@ Functions for defining and evaluating smoothed piecewise-linear model.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Define or evaluate a smoothed piecewise-linear model.
-}}
+\item \code{splm(default)}: Define or evaluate a smoothed piecewise-linear model.
 
+}}
 \examples{
 # Single transition:
 theta <- c(alpha = 0, slope = c(0, 1), transition = 0, window = -3)

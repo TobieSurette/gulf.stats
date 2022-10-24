@@ -48,8 +48,8 @@ Functions to graphically display statistical models.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{variogram}: Variogram plot method.
+\item \code{plot(variogram)}: Variogram plot method.
 
-\item \code{morphometry.scsbio}: Morphometric plot for snow crab biological data.
+\item \code{plot(morphometry.scsbio)}: Morphometric plot for snow crab biological data.
+
 }}
-

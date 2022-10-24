@@ -32,11 +32,11 @@ Functions to analyze morphometric data.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Perform morphometric regression analysis.
+\item \code{morphometry(default)}: Perform morphometric regression analysis.
 
-\item \code{scsbio}: Perform morphometric regression analysis for snow crab biological data.
+\item \code{morphometry(scsbio)}: Perform morphometric regression analysis for snow crab biological data.
+
 }}
-
 \examples{
 x <- read.scsbio(2010)
 v <- morphometry(x)

@@ -19,9 +19,9 @@ Functions to determine sexual maturity from morphometric measurements.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{scsbio}: Determine morphometric maturity from snow crab biological data.
-}}
+\item \code{morphometric.maturity(scsbio)}: Determine morphometric maturity from snow crab biological data.
 
+}}
 \examples{
 # Male morphometric maturity:
 x <- read.scsbio(2011, sex = 1)

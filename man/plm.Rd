@@ -28,7 +28,3 @@ right values yield right-skewed basis functions, while a zero value indicates no
 \description{
 Set of functions which define a class of smooth piecewise linear models.
 }
-\examples{
-
-
-}

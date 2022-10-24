@@ -55,10 +55,10 @@ Functions to calculate empirical variograms and fit variogram models to data.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{default}: Calculate empirical variogram.
+\item \code{variogram(default)}: Calculate empirical variogram.
 
-\item \code{scsset}: Calculate empirical variogram for snow crab survey data.
+\item \code{variogram(scsset)}: Calculate empirical variogram for snow crab survey data.
 
-\item \code{variogram}: Evaluate variogram at specified distances.
+\item \code{variogram(variogram)}: Evaluate variogram at specified distances.
+
 }}
-
