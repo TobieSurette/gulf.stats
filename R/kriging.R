@@ -151,8 +151,6 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       variables <- category
    }
 
-
-
    # Define survey years:
    years <- sort(unique(gulf.utils::year(x)))
 
@@ -236,14 +234,11 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
       dx <- x$xkm[i] - depth$xkm
       dy <- x$ykm[i] - depth$ykm
       dist <- sqrt(dx^2 + dy^2)
-      ix <- order(dist)[1:4]
+      ix <- order(dist)[1:16]
       xx <- depth$xkm[ix]
       yy <- depth$ykm[ix]
       zz <- depth$depth[ix]
-      x$depth[i] <- mean(zz)
-      #akima::interp(x = xx, y = yy, z = zz, x$xkm[i], x$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z
-      #pracma::interp2(x = xx, y = yy, Z = zz, xp = x$xkm[i], yp = x$ykm[i], method = c("linear"))
-      #interp::interp(x = xx, y = yy, z = zz, xo = x$xkm[i], yo = x$ykm[i], extrap = TRUE, duplicate = "mean")
+      x$depth[i] <- akima::interpp(x = xx, y = yy, z = zz, xo = x$xkm[i], yo = x$ykm[i], linear = FALSE, extrap = TRUE, duplicate = "mean")$z
    }
 
    # Define kriging interpolation grid:
@@ -263,13 +258,13 @@ ked.scsset <- function(x, y, variables, variogram, year, category, weight = FALS
          if ((i %% 500) == 0) cat(paste0("   Interpolating ", i, " of ", nrow(x0), " points.\n"))
          dx <- x0$xkm[i] - depth$xkm
          dy <- x0$ykm[i] - depth$ykm
-         ix <- head(order(dx^2 + dy^2))[1:4]
+         ix <- head(order(dx^2 + dy^2))[1:16]
          xx <- depth$xkm[ix]
          yy <- depth$ykm[ix]
          zz <- depth$depth[ix]
          flag <- all(x0$xkm[i] > xx) | all(x0$xkm[i] < xx) | all(x0$ykm[i] > yy) | all(x0$ykm[i] < yy)
          if (!flag){
-            if (all(zz == 0)) x0$depth[i] <- 0 else x0$depth[i] <- akima::interp(x = xx, y = yy, z = zz, x0$xkm[i], x0$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z[1,1]
+            if (all(zz == 0)) x0$depth[i] <- 0 else x0$depth[i] <- akima::interpp(x = xx, y = yy, z = zz, x0$xkm[i], x0$ykm[i], linear = TRUE, extrap = TRUE, duplicate = "mean")$z[1,1]
          }
       }
 
